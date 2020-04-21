@@ -5,6 +5,9 @@ spring:
   application:
     name: "@project.parent.artifactId@"
     version: "@project.version@"
+  batch:
+    job:
+      enabled: false
 
 info:
   build:
@@ -12,6 +15,7 @@ info:
     name: "@project.parent.artifactId@"
     description: "@project.description@"
     version: "@project.version@"
+
 
 error-manager:
   enabled: true

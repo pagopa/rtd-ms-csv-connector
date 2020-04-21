@@ -1,8 +1,11 @@
-package it.gov.pagopa.rtd.csv_connector.model;
+package it.gov.pagopa.rtd.csv_connector.batch.model;
 
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -11,19 +14,27 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"idTrxAcquirer", "acquirerCode", "trxDate"}, callSuper = false)
-public class Transaction {
+public class InboundTransaction {
 
+    @NotNull
     Integer idTrxAcquirer;
 
+    @NotNull
+    @NotBlank
+    @Size(max = 20)
     String acquirerCode;
 
+    @NotNull
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     OffsetDateTime trxDate;
 
-    String hpan;
+    @Size(max = 64)
+    String pan;
 
+    @Size(max = 2)
     String operationType;
 
+    @Size(max = 2)
     String circuitType;
 
     Integer idTrxIssuer;
@@ -32,12 +43,13 @@ public class Transaction {
 
     BigDecimal amount;
 
+    @Size(max = 3)
     String amountCurrency;
 
     String mcc;
 
-    Integer acquirerId;
+    String acquirerId;
 
-    Integer merchantId;
+    String merchantId;
 
 }

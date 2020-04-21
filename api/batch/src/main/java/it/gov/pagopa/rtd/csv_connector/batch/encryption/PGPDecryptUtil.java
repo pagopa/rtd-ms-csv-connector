@@ -1,48 +1,17 @@
-package it.gov.pagopa.rtd.csv_connector.batch.decrypt;
+package it.gov.pagopa.rtd.csv_connector.batch.encryption;
 
-import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Iterator;
 
-@NoArgsConstructor
 public class PGPDecryptUtil {
-
-    @SuppressWarnings("unchecked")
-    public static PGPPublicKey readPublicKey(InputStream in) throws IOException, PGPException {
-
-        in = org.bouncycastle.openpgp.PGPUtil.getDecoderStream(in);
-
-        PGPPublicKeyRingCollection pgpPub = new PGPPublicKeyRingCollection(in);
-
-        PGPPublicKey key = null;
-
-        Iterator<PGPPublicKeyRing> rIt = pgpPub.getKeyRings();
-
-        while (key == null && rIt.hasNext()) {
-            PGPPublicKeyRing kRing = rIt.next();
-            Iterator<PGPPublicKey> kIt = kRing.getPublicKeys();
-            while (key == null && kIt.hasNext()) {
-                PGPPublicKey k = kIt.next();
-
-                if (k.isEncryptionKey()) {
-                    key = k;
-                }
-            }
-        }
-
-        if (key == null) {
-            throw new IllegalArgumentException("Can't find encryption key in key ring.");
-        }
-
-        return key;
-    }
 
     /**
      * Load a secret key ring collection from keyIn and find the secret key
@@ -147,5 +116,75 @@ public class PGPDecryptUtil {
 
     }
 
+    public static PGPPublicKey readPublicKey(InputStream in)
+            throws IOException, PGPException
+    {
+
+        PGPPublicKeyRingCollection keyRingCollection = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(in));
+
+        //
+        // we just loop through the collection till we find a key suitable for encryption, in the real
+        // world you would probably want to be a bit smarter about this.
+        //
+        PGPPublicKey publicKey = null;
+
+        //
+        // iterate through the key rings.
+        //
+        Iterator<PGPPublicKeyRing> rIt = keyRingCollection.getKeyRings();
+
+        while (publicKey == null && rIt.hasNext()) {
+            PGPPublicKeyRing kRing = rIt.next();
+            Iterator<PGPPublicKey> kIt = kRing.getPublicKeys();
+            while (publicKey == null && kIt.hasNext()) {
+                PGPPublicKey key = kIt.next();
+                if (key.isEncryptionKey()) {
+                    publicKey = key;
+                }
+            }
+        }
+
+        if (publicKey == null) {
+            throw new IllegalArgumentException("Can't find public key in the key ring.");
+        }
+        //     if (!isForEncryption(publicKey)) {
+        //       throw new IllegalArgumentException("KeyID " + publicKey.getKeyID() + " not flagged for encryption.");
+        //   }
+
+        return publicKey;
+    }
+
+    public static void encryptFile(OutputStream out, String fileName, PGPPublicKey encKey, boolean armor,
+                                   boolean withIntegrityCheck) throws IOException, NoSuchProviderException, PGPException {
+        Security.addProvider(new BouncyCastleProvider());
+
+        if (armor) {
+            out = new ArmoredOutputStream(out);
+        }
+
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
+
+        org.bouncycastle.openpgp.PGPUtil.writeFileToLiteralData(comData.open(bOut), PGPLiteralData.BINARY,
+                new File(fileName));
+
+        comData.close();
+
+        PGPEncryptedDataGenerator cPk = new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck,
+                new SecureRandom(), "BC");
+
+        cPk.addMethod(encKey);
+
+        byte[] bytes = bOut.toByteArray();
+
+        OutputStream cOut = cPk.open(out, bytes.length);
+
+        cOut.write(bytes);
+
+        cOut.close();
+
+        out.close();
+    }
 
 }
