@@ -18,7 +18,7 @@ public class TransactionWriter implements ItemWriter<Transaction> {
 
     @Override
     public void write(List<? extends Transaction> transactions) throws Exception {
-        transactions.forEach(csvTransactionPublisherService::publishInvoiceTransactionEvent);
+        transactions.forEach(csvTransactionPublisherService::publishTransactionEvent);
     }
 
 }

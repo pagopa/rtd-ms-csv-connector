@@ -26,7 +26,7 @@ class CsvTransactionPublisherServiceImpl implements CsvTransactionPublisherServi
     }
 
     @Override
-    public void publishInvoiceTransactionEvent(Transaction transaction) {
+    public void publishTransactionEvent(Transaction transaction) {
         csvTransactionPublisherConnector.doCall(
                 transaction, simpleEventRequestTransformer, simpleEventResponseTransformer);
     }
