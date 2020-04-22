@@ -1,9 +1,11 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
 import com.zaxxer.hikari.HikariDataSource;
+import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.batch.scheduler.CsvTransactionReaderTaskScheduler;
+import it.gov.pagopa.rtd.csv_connector.batch.step.ArchivalTasklet;
 import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
 import it.gov.pagopa.rtd.csv_connector.batch.step.PGPFlatFileItemReader;
 import it.gov.pagopa.rtd.csv_connector.batch.step.TransactionWriter;
@@ -15,18 +17,18 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.*;
+import org.springframework.batch.core.job.builder.FlowJobBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.partition.support.MultiResourcePartitioner;
+import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
-import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
@@ -37,15 +39,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,10 +68,24 @@ public class CsvTransactionReaderBatch {
 
     @Value("${batchConfiguration.CsvTransactionReaderBatch.classpath}")
     private String directoryPath;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.successArchivePath}")
+    private String successArchivePath;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.errorArchivePath}")
+    private String errorArchivePath;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.secretKeyPath}")
     private String secretKeyPath;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.passphrase}")
     private String passphrase;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.partitionerSize}")
+    private Integer partitionerSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.chunkSize}")
+    private Integer chunkSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.maxPoolSize}")
+    private Integer maxPoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.corePoolSize}")
+    private Integer corePoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.skipLimit}")
+    private Integer skipLimit;
 
     @Autowired
     private HikariDataSource dataSource;
@@ -139,58 +157,91 @@ public class CsvTransactionReaderBatch {
     }
 
 
+    @SneakyThrows
     @Bean
-    public ItemReader<InboundTransaction> getItemReader() throws IOException {
-        MultiResourceItemReader<InboundTransaction> multiResourceItemReader =
-                new MultiResourceItemReader<>();
-        ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
-        multiResourceItemReader.setResources(patternResolver.getResources(directoryPath));
-
-        PGPFlatFileItemReader delegateReader = new PGPFlatFileItemReader(secretKeyPath, passphrase);
-        delegateReader.setLineMapper(getLineMapper());
-
-        multiResourceItemReader.setDelegate(delegateReader);
-        return multiResourceItemReader;
-    }
-
-    @Bean
-    public ItemWriter<Transaction> getItemWriter() {
-        return beanFactory.getBean(TransactionWriter.class);
+    @StepScope
+    public FlatFileItemReader<InboundTransaction> getItemReader(
+            @Value("#{stepExecutionContext['fileName']}") String file) {
+        PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(secretKeyPath, passphrase);
+        flatFileItemReader.setResource(new UrlResource(file));
+        flatFileItemReader.setLineMapper(getLineMapper());
+        return flatFileItemReader;
     }
 
 
     @Bean
+    @StepScope
     public ItemProcessor<InboundTransaction, Transaction> getItemProcessor() {
         return beanFactory.getBean(InboundTransactionItemProcessor.class);
     }
 
     @Bean
-    public Step pgpReaderStep() {
-        try {
-            return stepBuilderFactory.get("csv-transaction-reader-step")
-                    .<InboundTransaction, Transaction>chunk(10)
-                    .reader(getItemReader())
-                    .processor(getItemProcessor())
-                    .writer(getItemWriter())
-                    .build();
-        } catch (IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error(e.getMessage(),e);
-            }
-        }
+    @StepScope
+    public ItemWriter<Transaction> getItemWriter() {
+        return beanFactory.getBean(TransactionWriter.class);
+    }
 
-        return null;
+    @SneakyThrows
+    @Bean
+    public Step archivalTask() {
+        ArchivalTasklet archivalTasklet = new ArchivalTasklet();
+        archivalTasklet.setSuccessPath(successArchivePath);
+        archivalTasklet.setErrorPath(errorArchivePath);
+        return stepBuilderFactory.get("csv-success-archive-step").tasklet(archivalTasklet).build();
+    }
+
+    @SneakyThrows
+    public FlowJobBuilder getJobBuilder() {
+        return jobBuilderFactory.get("csv-transaction-job")
+                .repository(getJobRepository())
+                .start(masterStep()).on("*").to(archivalTask())
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public Partitioner partitioner() throws Exception {
+        MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        partitioner.setResources(resolver.getResources(directoryPath));
+        partitioner.partition(partitionerSize);
+        return partitioner;
+    }
+
+    @Bean
+    public Step masterStep() throws Exception {
+        return stepBuilderFactory.get("csv-transaction-connector-master-step").partitioner(workerStep())
+                .partitioner("partition", partitioner())
+                .taskExecutor(getTaskExecutor()).build();
+    }
+
+    @Bean
+    public Step workerStep() throws Exception {
+        return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
+                .reader(getItemReader(null))
+                .processor(getItemProcessor())
+                .faultTolerant()
+                .skipLimit(skipLimit)
+                .noSkip(PGPDecryptException.class)
+                .noSkip(FileNotFoundException.class)
+                .skip(Exception.class)
+                .writer(getItemWriter()).build();
+    }
+
+    @Bean
+    public TaskExecutor getTaskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setMaxPoolSize(maxPoolSize);
+        taskExecutor.setCorePoolSize(corePoolSize);
+        taskExecutor.afterPropertiesSet();
+        return taskExecutor;
     }
 
     @SneakyThrows
     @Bean
     public Job job() {
-        return jobBuilderFactory.get("csv-transaction-job")
-                .repository(getJobRepository())
-                .start(pgpReaderStep())
-                .build();
+       return getJobBuilder().build();
     }
-
 
     @Bean
     public TaskScheduler poolScheduler() {

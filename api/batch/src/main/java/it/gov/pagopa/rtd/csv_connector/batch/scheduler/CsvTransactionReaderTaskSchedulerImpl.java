@@ -19,6 +19,7 @@ class CsvTransactionReaderTaskSchedulerImpl extends ThreadPoolTaskScheduler
 
     private static final long serialVersionUID = 3276751893429922827L;
 
+
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long period) {
 

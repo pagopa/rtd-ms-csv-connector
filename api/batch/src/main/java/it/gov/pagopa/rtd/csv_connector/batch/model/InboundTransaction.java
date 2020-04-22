@@ -28,28 +28,39 @@ public class InboundTransaction {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     OffsetDateTime trxDate;
 
-    @Size(max = 64)
+    @NotNull
+    @NotBlank
     String pan;
 
+    @NotNull
+    @NotBlank
     @Size(max = 2)
     String operationType;
 
+    @NotNull
+    @NotBlank
     @Size(max = 2)
     String circuitType;
 
+    @NotNull
     Integer idTrxIssuer;
 
     Integer correlationId;
 
+    @NotNull
     BigDecimal amount;
 
     @Size(max = 3)
     String amountCurrency;
 
+    @NotNull
+    @NotBlank
     String mcc;
 
     String acquirerId;
 
+    @NotNull
+    @NotBlank
     String merchantId;
 
 }
