@@ -30,7 +30,6 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
             throw new ConstraintViolationException(constraintViolations);
         }
 
-        //TODO: Apply normalizer
         Transaction transaction = mapper.map(inboundTransaction);
         transaction.setHpan(DigestUtils.sha256Hex(inboundTransaction.getPan()));
 

@@ -80,12 +80,18 @@ public class CsvTransactionReaderBatch {
     private Integer partitionerSize;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.chunkSize}")
     private Integer chunkSize;
-    @Value("${batchConfiguration.CsvTransactionReaderBatch.maxPoolSize}")
-    private Integer maxPoolSize;
-    @Value("${batchConfiguration.CsvTransactionReaderBatch.corePoolSize}")
-    private Integer corePoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.partitionerMaxPoolSize}")
+    private Integer partitionerMaxPoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.partitionerCorePoolSize}")
+    private Integer partitionerCorePoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.readerMaxPoolSize}")
+    private Integer readerMaxPoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.readerCorePoolSize}")
+    private Integer readerCorePoolSize;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.skipLimit}")
     private Integer skipLimit;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.linesToSkip}")
+    private Integer linesToSkip;
 
     @Autowired
     private HikariDataSource dataSource;
@@ -98,7 +104,7 @@ public class CsvTransactionReaderBatch {
             log.info("CsvTransactionReader scheduled job started at " + startDate);
         }
 
-        JobExecution jobExecution = getJobLauncher().run(
+        JobExecution jobExecution = transactionJobLauncher().run(
                 job(), new JobParametersBuilder()
                         .addDate("startDateTime", startDate)
                         .toJobParameters());
@@ -126,14 +132,14 @@ public class CsvTransactionReaderBatch {
     }
 
     @Bean
-    public JobLauncher getJobLauncher() throws Exception {
+    public JobLauncher transactionJobLauncher() throws Exception {
         SimpleJobLauncher simpleJobLauncher = new SimpleJobLauncher();
         simpleJobLauncher.setJobRepository(getJobRepository());
         return simpleJobLauncher;
     }
 
     @Bean
-    public LineTokenizer getLineTokenizer() {
+    public LineTokenizer transactionLineTokenizer() {
         DelimitedLineTokenizer delimitedLineTokenizer = new DelimitedLineTokenizer();
         delimitedLineTokenizer.setDelimiter(";");
         delimitedLineTokenizer.setNames(
@@ -143,16 +149,16 @@ public class CsvTransactionReaderBatch {
     }
 
     @Bean
-    public FieldSetMapper<InboundTransaction> getFieldSetMapper() {
+    public FieldSetMapper<InboundTransaction> transactionFieldSetMapper() {
         return new InboundTransactionFieldSetMapper();
     }
 
 
     @Bean
-    public LineMapper<InboundTransaction> getLineMapper() {
+    public LineMapper<InboundTransaction> transactionLineMapper() {
         DefaultLineMapper<InboundTransaction> lineMapper = new DefaultLineMapper<>();
-        lineMapper.setLineTokenizer(getLineTokenizer());
-        lineMapper.setFieldSetMapper(getFieldSetMapper());
+        lineMapper.setLineTokenizer(transactionLineTokenizer());
+        lineMapper.setFieldSetMapper(transactionFieldSetMapper());
         return lineMapper;
     }
 
@@ -160,18 +166,19 @@ public class CsvTransactionReaderBatch {
     @SneakyThrows
     @Bean
     @StepScope
-    public FlatFileItemReader<InboundTransaction> getItemReader(
+    public FlatFileItemReader<InboundTransaction> transactionItemReader(
             @Value("#{stepExecutionContext['fileName']}") String file) {
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(secretKeyPath, passphrase);
         flatFileItemReader.setResource(new UrlResource(file));
-        flatFileItemReader.setLineMapper(getLineMapper());
+        flatFileItemReader.setLineMapper(transactionLineMapper());
+        flatFileItemReader.setLinesToSkip(linesToSkip);
         return flatFileItemReader;
     }
 
 
     @Bean
     @StepScope
-    public ItemProcessor<InboundTransaction, Transaction> getItemProcessor() {
+    public ItemProcessor<InboundTransaction, Transaction> transactionItemProcessor() {
         return beanFactory.getBean(InboundTransactionItemProcessor.class);
     }
 
@@ -191,7 +198,7 @@ public class CsvTransactionReaderBatch {
     }
 
     @SneakyThrows
-    public FlowJobBuilder getJobBuilder() {
+    public FlowJobBuilder transactionJobBuilder() {
         return jobBuilderFactory.get("csv-transaction-job")
                 .repository(getJobRepository())
                 .start(masterStep()).on("*").to(archivalTask())
@@ -212,27 +219,38 @@ public class CsvTransactionReaderBatch {
     public Step masterStep() throws Exception {
         return stepBuilderFactory.get("csv-transaction-connector-master-step").partitioner(workerStep())
                 .partitioner("partition", partitioner())
-                .taskExecutor(getTaskExecutor()).build();
+                .taskExecutor(partitionerTaskExecutor()).build();
     }
 
     @Bean
     public Step workerStep() throws Exception {
         return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
-                .reader(getItemReader(null))
-                .processor(getItemProcessor())
+                .reader(transactionItemReader(null))
+                .processor(transactionItemProcessor())
+                .writer(getItemWriter())
                 .faultTolerant()
                 .skipLimit(skipLimit)
                 .noSkip(PGPDecryptException.class)
                 .noSkip(FileNotFoundException.class)
                 .skip(Exception.class)
-                .writer(getItemWriter()).build();
+                .taskExecutor(readerTaskExecutor())
+                .build();
     }
 
     @Bean
-    public TaskExecutor getTaskExecutor() {
+    public TaskExecutor partitionerTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(maxPoolSize);
-        taskExecutor.setCorePoolSize(corePoolSize);
+        taskExecutor.setMaxPoolSize(partitionerMaxPoolSize);
+        taskExecutor.setCorePoolSize(partitionerCorePoolSize);
+        taskExecutor.afterPropertiesSet();
+        return taskExecutor;
+    }
+
+    @Bean
+    public TaskExecutor readerTaskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setMaxPoolSize(readerMaxPoolSize);
+        taskExecutor.setCorePoolSize(readerCorePoolSize);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
     }
@@ -240,7 +258,7 @@ public class CsvTransactionReaderBatch {
     @SneakyThrows
     @Bean
     public Job job() {
-       return getJobBuilder().build();
+       return transactionJobBuilder().build();
     }
 
     @Bean
