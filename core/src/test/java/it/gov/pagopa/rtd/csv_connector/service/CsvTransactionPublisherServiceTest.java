@@ -45,8 +45,11 @@ public class CsvTransactionPublisherServiceTest extends BaseSpringTest {
                 csvTransactionPublisherConnectorMock,
                 simpleEventRequestTransformerSpy,
                 simpleEventResponseTransformerSpy);
-
         transaction = getRequestObject();
+    }
+
+    @Test
+    public void publishTransactionEvent() {
 
         BDDMockito.doReturn(true)
                 .when(csvTransactionPublisherConnectorMock)
@@ -55,11 +58,6 @@ public class CsvTransactionPublisherServiceTest extends BaseSpringTest {
                         Mockito.eq(simpleEventResponseTransformerSpy),
                         Mockito.any());
 
-
-    }
-
-    @Test
-    public void publishTransactionEvent() {
         try {
             csvTransactionPublisherService.publishTransactionEvent(transaction);
             BDDMockito.verify(csvTransactionPublisherConnectorMock,Mockito.atLeastOnce())
@@ -70,6 +68,7 @@ public class CsvTransactionPublisherServiceTest extends BaseSpringTest {
             e.printStackTrace();
             Assert.fail();
         }
+
     }
 
     protected Transaction getRequestObject() {

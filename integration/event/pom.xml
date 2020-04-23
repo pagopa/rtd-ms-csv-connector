@@ -18,6 +18,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>eu.sia.meda</groupId>
             <artifactId>meda-arch-event</artifactId>
         </dependency>

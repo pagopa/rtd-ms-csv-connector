@@ -17,7 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 public class CsvTransactionPublisherConnectorTest extends
         BaseEventConnectorTest<Transaction, Boolean, Transaction, Void, CsvTransactionPublisherConnector> {
 
-    @Value("${connectors.eventConfigurations.items.InvoiceTransactionPublisherConnector.topic}")
+    @Value("${connectors.eventConfigurations.items.CsvTransactionPublisherConnector.topic}")
     private String topic;
 
     @Autowired
