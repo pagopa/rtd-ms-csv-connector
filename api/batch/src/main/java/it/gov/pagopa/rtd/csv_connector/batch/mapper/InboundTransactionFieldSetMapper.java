@@ -1,13 +1,20 @@
 package it.gov.pagopa.rtd.csv_connector.batch.mapper;
 
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
+@RequiredArgsConstructor
 public class InboundTransactionFieldSetMapper implements FieldSetMapper<InboundTransaction> {
+
+    private final String timestampParser;
 
     @Override
     public InboundTransaction mapFieldSet(FieldSet fieldSet) throws BindException {
@@ -16,16 +23,21 @@ public class InboundTransactionFieldSetMapper implements FieldSetMapper<InboundT
             return null;
         }
 
+        DateTimeFormatter dtf = timestampParser != null && !timestampParser.isEmpty() ?
+                DateTimeFormatter.ofPattern(timestampParser).withZone(ZoneId.systemDefault()): null;
+
         InboundTransaction inboundTransaction =
                 InboundTransaction.builder()
                         .acquirerCode(fieldSet.readString("codice_acquirer"))
                         .operationType(fieldSet.readString("tipo_operazione"))
                         .circuitType(fieldSet.readString("tipo_circuito"))
                         .pan(fieldSet.readString("PAN"))
-                        .trxDate(OffsetDateTime.parse(fieldSet.readString("timestamp")))
+                        .trxDate(dtf != null ?
+                                ZonedDateTime.parse(fieldSet.readString("timestamp"), dtf).toOffsetDateTime() :
+                                OffsetDateTime.parse(fieldSet.readString("timestamp")))
                         .idTrxAcquirer(fieldSet.readInt("id_trx_acquirer"))
                         .idTrxIssuer(fieldSet.readInt("id_trx_issuer"))
-                        .correlationId(fieldSet.readInt("correlation_id"))
+                        .correlationId(fieldSet.readString("correlation_id"))
                         .amount(fieldSet.readBigDecimal("importo"))
                         .amountCurrency(fieldSet.readString("currency"))
                         .acquirerId(fieldSet.readString("acquirerID"))

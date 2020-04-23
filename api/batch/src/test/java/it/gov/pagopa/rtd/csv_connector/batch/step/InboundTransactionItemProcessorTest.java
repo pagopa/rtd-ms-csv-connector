@@ -77,7 +77,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                 .mcc("813")
                 .idTrxIssuer(0)
                 .amountCurrency("833")
-                .correlationId(1)
+                .correlationId("1")
                 .acquirerId("0")
                 .build();
     }

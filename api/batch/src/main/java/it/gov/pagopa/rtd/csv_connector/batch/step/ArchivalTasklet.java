@@ -22,8 +22,6 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
     private String errorPath;
     private String successPath;
 
-
-
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(new PathMatchingResourcePatternResolver()

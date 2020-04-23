@@ -45,7 +45,7 @@ public class InboundTransaction {
     @NotNull
     Integer idTrxIssuer;
 
-    Integer correlationId;
+    String correlationId;
 
     @NotNull
     BigDecimal amount;

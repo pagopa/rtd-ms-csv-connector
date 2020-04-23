@@ -92,6 +92,8 @@ public class CsvTransactionReaderBatch {
     private Integer skipLimit;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.linesToSkip}")
     private Integer linesToSkip;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.timestampPattern}")
+    private String timestampPattern;
 
     @Autowired
     private HikariDataSource dataSource;
@@ -150,7 +152,7 @@ public class CsvTransactionReaderBatch {
 
     @Bean
     public FieldSetMapper<InboundTransaction> transactionFieldSetMapper() {
-        return new InboundTransactionFieldSetMapper();
+        return new InboundTransactionFieldSetMapper(timestampPattern);
     }
 
 
