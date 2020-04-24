@@ -94,6 +94,8 @@ public class CsvTransactionReaderBatch {
     private Integer linesToSkip;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.timestampPattern}")
     private String timestampPattern;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.tablePrefix}")
+    private String tablePrefix;
 
     @Autowired
     private HikariDataSource dataSource;
@@ -112,8 +114,10 @@ public class CsvTransactionReaderBatch {
                         .toJobParameters());
         batchRunCounter.incrementAndGet();
 
-        if (log.isDebugEnabled()) {
-            log.debug("Scheduled job ended with status: " + jobExecution.getStatus());
+        Date endDate = new Date();
+        if (log.isInfoEnabled()) {
+            log.info("CsvTransactionReader scheduled job ended at " + endDate);
+            log.info("Completed in: " + (endDate.getTime() - startDate.getTime()) + " (ms)");
         }
 
     }
@@ -129,7 +133,9 @@ public class CsvTransactionReaderBatch {
     public JobRepository getJobRepository() throws Exception {
         JobRepositoryFactoryBean jobRepositoryFactoryBean = new JobRepositoryFactoryBean();
         jobRepositoryFactoryBean.setTransactionManager(getTransactionManager());
+        jobRepositoryFactoryBean.setTablePrefix(tablePrefix);
         jobRepositoryFactoryBean.setDataSource(dataSource);
+        jobRepositoryFactoryBean.afterPropertiesSet();
         return jobRepositoryFactoryBean.getObject();
     }
 
@@ -155,7 +161,6 @@ public class CsvTransactionReaderBatch {
         return new InboundTransactionFieldSetMapper(timestampPattern);
     }
 
-
     @Bean
     public LineMapper<InboundTransaction> transactionLineMapper() {
         DefaultLineMapper<InboundTransaction> lineMapper = new DefaultLineMapper<>();
@@ -163,7 +168,6 @@ public class CsvTransactionReaderBatch {
         lineMapper.setFieldSetMapper(transactionFieldSetMapper());
         return lineMapper;
     }
-
 
     @SneakyThrows
     @Bean
@@ -176,7 +180,6 @@ public class CsvTransactionReaderBatch {
         flatFileItemReader.setLinesToSkip(linesToSkip);
         return flatFileItemReader;
     }
-
 
     @Bean
     @StepScope

@@ -13,6 +13,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
 
+import java.io.File;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 @Data
@@ -40,6 +43,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                 String path = file.replace("file:/", "");
 
                 try {
+
                     String archivalPath =
                             BatchStatus.COMPLETED.equals(stepExecution.getStatus()) &&
                                     stepExecution.getFailureExceptions().size() <= 0 ?
@@ -47,8 +51,14 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                                     errorPath.replace("file:/", "");
 
                     String[] filename = file.split("/");
-                    FileUtils.moveFile(FileUtils.getFile(path), FileUtils.getFile(archivalPath + "/" +
-                            filename[filename.length - 1]));
+
+                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+                    File destFile = FileUtils.getFile(archivalPath + "/" +
+                            OffsetDateTime.now().format(fmt) + "_" + filename[filename.length - 1]);
+
+                    FileUtils.moveFile(FileUtils.getFile(path), destFile);
+
                 } catch (Exception e) {
                     if (log.isErrorEnabled()) {
                         log.error(e.getMessage(), e);

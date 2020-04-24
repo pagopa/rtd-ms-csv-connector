@@ -35,7 +35,7 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
 
     @SneakyThrows
     @Before
-    public void encrypt() {
+    public void setUp() {
         String resourcePath = resourceDirectory.toAbsolutePath().toString();
         new File(resourcePath + "/test-encrypt/test-trx.pgp").createNewFile();
         PGPDecryptUtil.encryptFile(new FileOutputStream(resourcePath + "/test-encrypt/test-trx.pgp"),

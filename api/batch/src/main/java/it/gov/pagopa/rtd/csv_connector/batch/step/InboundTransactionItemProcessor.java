@@ -5,7 +5,6 @@ import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.model.Transaction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +30,6 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
         }
 
         Transaction transaction = mapper.map(inboundTransaction);
-        transaction.setHpan(DigestUtils.sha256Hex(inboundTransaction.getPan()));
 
         return transaction;
 
