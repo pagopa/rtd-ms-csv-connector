@@ -8,6 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author ALessio Cialini
+ * Implementation of the CsvTransactionPublisherService, the class is responsible for handling the transactions
+ * to be passed through the connector for the outbound channel
+ */
 @Service
 @Slf4j
 class CsvTransactionPublisherServiceImpl implements CsvTransactionPublisherService {
@@ -25,6 +30,12 @@ class CsvTransactionPublisherServiceImpl implements CsvTransactionPublisherServi
         this.simpleEventResponseTransformer = simpleEventResponseTransformer;
     }
 
+    /**
+     * Method that has the logic for publishing a Transaction to an outbound channel,
+     * calling on the appropriate connector
+     * @param transaction
+     *              Transaction instance to be published
+     */
     @Override
     public void publishTransactionEvent(Transaction transaction) {
         csvTransactionPublisherConnector.doCall(

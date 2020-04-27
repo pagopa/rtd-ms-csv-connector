@@ -19,6 +19,10 @@ import org.springframework.test.context.ContextConfiguration;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+/**
+ * @author ALessio Cialini
+ * Class for unit testing of the CsvTransactionPublisherService class
+ */
 @ContextConfiguration(classes = CsvTransactionPublisherServiceImpl.class)
 public class CsvTransactionPublisherServiceTest extends BaseSpringTest {
 

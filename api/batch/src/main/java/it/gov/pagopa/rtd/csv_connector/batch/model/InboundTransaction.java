@@ -11,6 +11,7 @@ import java.time.OffsetDateTime;
 
 /**
  * @author Alessio Cialini
+ * Model for the processed lines in the batch
  */
 
 @Data
