@@ -11,6 +11,9 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Iterator;
 
+/**
+ * Util class for file encryption/decryption using bouncycastle openPGP implementation
+**/
 public class PGPDecryptUtil {
 
     /**
@@ -116,6 +119,16 @@ public class PGPDecryptUtil {
 
     }
 
+    /**
+     * Load a public key ring collection from keyIn and find the public key
+     *  if it exists.
+     *
+     * @param in
+     *           input stream representing a key ring collection.
+     * @return
+     * @throws IOException
+     * @throws PGPException
+     */
     public static PGPPublicKey readPublicKey(InputStream in)
             throws IOException, PGPException
     {
@@ -154,8 +167,28 @@ public class PGPDecryptUtil {
         return publicKey;
     }
 
-    public static void encryptFile(OutputStream out, String fileName, PGPPublicKey encKey, boolean armor,
-                                   boolean withIntegrityCheck) throws IOException, NoSuchProviderException, PGPException {
+    /**
+     * Load a secret key ring collection from keyIn and find the secret key
+     * corresponding to keyID if it exists.
+     *
+     * @param out
+     *            output stream representing the encrypted file.
+     * @param fileName
+     *            filename referring to the file encrypt.
+     * @param encKey
+     *            public key to be used for encrypting.
+     * @param armor
+     *            define if the output stream has to be armored.
+     * @param withIntegrityCheck
+     *            define if the encrypted file has to pass an integrity check.
+     * @return
+     * @throws IOException
+     * @throws PGPException
+     * @throws NoSuchProviderException
+     */
+    public static void encryptFile(
+            OutputStream out, String fileName, PGPPublicKey encKey, boolean armor, boolean withIntegrityCheck)
+                throws IOException, NoSuchProviderException, PGPException {
         Security.addProvider(new BouncyCastleProvider());
 
         if (armor) {

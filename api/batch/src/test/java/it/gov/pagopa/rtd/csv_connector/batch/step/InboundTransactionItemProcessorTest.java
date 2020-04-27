@@ -17,6 +17,10 @@ import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+/**
+ * @author Alessio Cialini
+ * Class for unit testing of the InboundTransactionItemProcessor class
+ */
 public class InboundTransactionItemProcessorTest extends BaseTest {
 
     @Spy

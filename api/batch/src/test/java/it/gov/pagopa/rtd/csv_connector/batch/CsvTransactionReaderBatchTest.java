@@ -11,6 +11,10 @@ import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * @author Alessio Cialini
+ * Class for testing the CsvTransactionReaderBatch class
+ */
 public class CsvTransactionReaderBatchTest {
 
     //FIXME: Temporary usage of encrypting method for testing purposes, to be removed

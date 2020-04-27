@@ -18,6 +18,12 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
+/**
+ * @author Alessio Cialini
+ * implementation of the Tasklet interface, in which the execute method contains the logic for processed file archival,
+ * based on the status of conclusion for every file processed
+ */
+
 @Data
 @Slf4j
 public class ArchivalTasklet implements Tasklet, InitializingBean {
@@ -25,6 +31,10 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
     private String errorPath;
     private String successPath;
 
+    /**
+     *
+     * @throws Exception
+     */
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(new PathMatchingResourcePatternResolver()
@@ -33,6 +43,14 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                 .getResources("file:" + errorPath + "*.pgp"), "directory must be set");
     }
 
+    /**
+     * Method that contains the logic for file archival, based on the exit status of each step obtained from the
+     * ChunkContext that contains a filename key in the ExecutionContext
+     * @param stepContribution
+     * @param chunkContext
+     * @return Status of the tasklet execution
+     * @throws Exception
+     */
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         Collection<StepExecution> stepExecutions = chunkContext.getStepContext().getStepExecution().getJobExecution()

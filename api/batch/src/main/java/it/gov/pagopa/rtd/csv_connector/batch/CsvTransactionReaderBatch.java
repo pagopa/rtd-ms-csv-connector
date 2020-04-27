@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
-import it.gov.pagopa.rtd.csv_connector.batch.scheduler.CsvTransactionReaderTaskScheduler;
 import it.gov.pagopa.rtd.csv_connector.batch.step.ArchivalTasklet;
 import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
 import it.gov.pagopa.rtd.csv_connector.batch.step.PGPFlatFileItemReader;
@@ -47,11 +46,18 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * @author Alessio Cialini
+ * Congiguration of a scheduled batch job to read and decrypt .pgp files with csv content,
+ * to be processed in instances of Transaction class, to be sent in an outbound Kafka channel
+ */
 
 @Configuration
 @PropertySource("classpath:config/csvTransactionReaderBatch.properties")
@@ -100,6 +106,11 @@ public class CsvTransactionReaderBatch {
     @Autowired
     private HikariDataSource dataSource;
 
+    /**
+     * Scheduled method used to launch the configured batch job for processing transaction from a defined directory.
+     * The scheduler is based on a cron execution, based on the provided configuration
+     * @throws Exception
+     */
     @Scheduled(cron = "${batchConfiguration.CsvTransactionReaderBatch.cron}")
     public void launchJob() throws Exception {
 
@@ -122,6 +133,10 @@ public class CsvTransactionReaderBatch {
 
     }
 
+    /**
+     *
+     * @return configured instance of TransactionManager
+     */
     @Bean
     public PlatformTransactionManager getTransactionManager() {
         DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
@@ -129,6 +144,11 @@ public class CsvTransactionReaderBatch {
         return dataSourceTransactionManager;
     }
 
+    /**
+     *
+     * @return configured instance of JobRepository
+     * @throws Exception
+     */
     @Bean
     public JobRepository getJobRepository() throws Exception {
         JobRepositoryFactoryBean jobRepositoryFactoryBean = new JobRepositoryFactoryBean();
@@ -139,6 +159,11 @@ public class CsvTransactionReaderBatch {
         return jobRepositoryFactoryBean.getObject();
     }
 
+    /**
+     *
+     * @return configured instance of JobLauncher
+     * @throws Exception
+     */
     @Bean
     public JobLauncher transactionJobLauncher() throws Exception {
         SimpleJobLauncher simpleJobLauncher = new SimpleJobLauncher();
@@ -146,6 +171,10 @@ public class CsvTransactionReaderBatch {
         return simpleJobLauncher;
     }
 
+    /**
+     *
+     * @return instance of the LineTokenizer to be used in the itemReader configured for the job
+     */
     @Bean
     public LineTokenizer transactionLineTokenizer() {
         DelimitedLineTokenizer delimitedLineTokenizer = new DelimitedLineTokenizer();
@@ -156,11 +185,19 @@ public class CsvTransactionReaderBatch {
         return delimitedLineTokenizer;
     }
 
+    /**
+     *
+     * @return instance of the FieldSetMapper to be used in the itemReader configured for the job
+     */
     @Bean
     public FieldSetMapper<InboundTransaction> transactionFieldSetMapper() {
         return new InboundTransactionFieldSetMapper(timestampPattern);
     }
 
+    /**
+     *
+     * @return instance of the LineMapper to be used in the itemReader configured for the job
+     */
     @Bean
     public LineMapper<InboundTransaction> transactionLineMapper() {
         DefaultLineMapper<InboundTransaction> lineMapper = new DefaultLineMapper<>();
@@ -169,6 +206,12 @@ public class CsvTransactionReaderBatch {
         return lineMapper;
     }
 
+    /**
+     *
+     * @param file
+     *          Late-Binding parameter to be used as the resource for the reader instance
+     * @return instance of the itemReader to be used in the first step of the configured job
+     */
     @SneakyThrows
     @Bean
     @StepScope
@@ -181,18 +224,30 @@ public class CsvTransactionReaderBatch {
         return flatFileItemReader;
     }
 
+    /**
+     *
+     * @return instance of the itemProcessor to be used in the first step of the configured job
+     */
     @Bean
     @StepScope
     public ItemProcessor<InboundTransaction, Transaction> transactionItemProcessor() {
         return beanFactory.getBean(InboundTransactionItemProcessor.class);
     }
 
+    /**
+     *
+     * @return instance of the itemWriter to be used in the first step of the configured job
+     */
     @Bean
     @StepScope
     public ItemWriter<Transaction> getItemWriter() {
         return beanFactory.getBean(TransactionWriter.class);
     }
 
+    /**
+     *
+     * @return step instance based on the tasklet to be used for file archival at the end of the reading process
+     */
     @SneakyThrows
     @Bean
     public Step archivalTask() {
@@ -202,6 +257,10 @@ public class CsvTransactionReaderBatch {
         return stepBuilderFactory.get("csv-success-archive-step").tasklet(archivalTasklet).build();
     }
 
+    /**
+     *
+     * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
+     */
     @SneakyThrows
     public FlowJobBuilder transactionJobBuilder() {
         return jobBuilderFactory.get("csv-transaction-job")
@@ -210,6 +269,11 @@ public class CsvTransactionReaderBatch {
                 .build();
     }
 
+    /**
+     *
+     * @return instance of a partitioner to be used for processing multiple files from a single directory
+     * @throws Exception
+     */
     @Bean
     @JobScope
     public Partitioner partitioner() throws Exception {
@@ -220,6 +284,12 @@ public class CsvTransactionReaderBatch {
         return partitioner;
     }
 
+    /**
+     *
+     * @return master step to be used as the formal main step in the reading phase of the job,
+     * partitioned for scaliblity on multiple file reading
+     * @throws Exception
+     */
     @Bean
     public Step masterStep() throws Exception {
         return stepBuilderFactory.get("csv-transaction-connector-master-step").partitioner(workerStep())
@@ -227,6 +297,12 @@ public class CsvTransactionReaderBatch {
                 .taskExecutor(partitionerTaskExecutor()).build();
     }
 
+    /**
+     *
+     * @return worker step, defined as a standard reader/processor/writer process,
+     * using chunk processing for scalability
+     * @throws Exception
+     */
     @Bean
     public Step workerStep() throws Exception {
         return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
@@ -242,6 +318,10 @@ public class CsvTransactionReaderBatch {
                 .build();
     }
 
+    /**
+     *
+     * @return bean configured for usage in the partitioner instance of the job
+     */
     @Bean
     public TaskExecutor partitionerTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
@@ -251,6 +331,10 @@ public class CsvTransactionReaderBatch {
         return taskExecutor;
     }
 
+    /**
+     *
+     * @return bean configured for usage for chunk reading of a single file
+     */
     @Bean
     public TaskExecutor readerTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
@@ -260,19 +344,23 @@ public class CsvTransactionReaderBatch {
         return taskExecutor;
     }
 
+    /**
+     *
+     * @return instance of a job for transaction processing
+     */
     @SneakyThrows
     @Bean
     public Job job() {
        return transactionJobBuilder().build();
     }
 
+    /**
+     *
+     * @return bean for a ThreadPoolTaskScheduler
+     */
     @Bean
     public TaskScheduler poolScheduler() {
-        return beanFactory.getBean(CsvTransactionReaderTaskScheduler.class);
-    }
-
-    public AtomicInteger getBatchRunCounter() {
-        return batchRunCounter;
+        return beanFactory.getBean(ThreadPoolTaskScheduler.class);
     }
 
 }

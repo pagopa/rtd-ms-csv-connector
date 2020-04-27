@@ -9,6 +9,10 @@ import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+/**
+ * @author Alessio Cialini
+ */
+
 @Data
 @Builder
 @NoArgsConstructor

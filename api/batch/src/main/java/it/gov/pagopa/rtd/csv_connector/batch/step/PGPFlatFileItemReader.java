@@ -14,6 +14,12 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 
+/**
+ * @author Alessio Cialini
+ * Extension of the FlatFileItemReader, in which a decrcyption phase is
+ * added to extract the csv content from the .pgp files
+ */
+
 @RequiredArgsConstructor
 public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction> {
 

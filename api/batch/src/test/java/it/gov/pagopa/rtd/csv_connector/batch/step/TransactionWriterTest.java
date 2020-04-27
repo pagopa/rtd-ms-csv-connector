@@ -15,7 +15,10 @@ import org.mockito.Mockito;
 
 import java.util.Collections;
 
-
+/**
+ * @author Alessio Cialini
+ * Class for unit testing of the TransactionWriter class
+ */
 public class TransactionWriterTest extends BaseTest {
 
     @Mock

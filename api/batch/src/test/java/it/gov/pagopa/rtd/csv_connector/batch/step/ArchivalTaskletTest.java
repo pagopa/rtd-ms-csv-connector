@@ -20,6 +20,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Alessio Cialini
+ * Class for unit testing of the ArchivalTasklet class
+ */
 public class ArchivalTaskletTest extends BaseTest {
 
     Path resourceDirectory = Paths.get("src","test","resources");

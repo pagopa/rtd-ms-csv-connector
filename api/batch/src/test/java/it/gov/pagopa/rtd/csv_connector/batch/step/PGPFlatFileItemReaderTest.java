@@ -28,6 +28,10 @@ import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * @author Alessio Cialini
+ * Class for unit testing of the PGPFlatFileItemReader class
+ */
 public class PGPFlatFileItemReaderTest extends BaseTest {
 
     Path resourceDirectory = Paths.get("src","test","resources");

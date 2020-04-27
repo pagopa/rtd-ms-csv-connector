@@ -11,11 +11,22 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * @author Alessio Cialini
+ * FieldSetMapper implementation, to be used for a reader related to files containing InboundTransaction data
+ */
 @RequiredArgsConstructor
 public class InboundTransactionFieldSetMapper implements FieldSetMapper<InboundTransaction> {
 
     private final String timestampParser;
 
+    /**
+     *
+     * @param fieldSet
+     *          instance of FieldSet containing fields related to an InboundTransaction
+     * @return instance of InboundTransaction, mapped from a FieldSet
+     * @throws BindException
+     */
     @Override
     public InboundTransaction mapFieldSet(FieldSet fieldSet) throws BindException {
 

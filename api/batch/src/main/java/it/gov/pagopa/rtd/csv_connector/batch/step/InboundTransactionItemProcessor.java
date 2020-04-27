@@ -11,6 +11,12 @@ import org.springframework.stereotype.Component;
 import javax.validation.*;
 import java.util.Set;
 
+/**
+ * @author Alessio Cialini
+ * Implementation of the ItemProcessor interface, used to process instances of InboundTransaction,
+ * to be mapped into a normalized version defined as instances of Transaction
+ */
+
 @RequiredArgsConstructor
 @Slf4j
 @Component
@@ -21,6 +27,13 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
 
+    /**
+     * Validates the input InboundTransaction, and maps it to an instance of Transaction
+     * @param inboundTransaction
+     *              instance of InboundTransaction from the read phase of the step
+     * @return instance of Transaction, mapped from a normalized instance of InboundTransaction
+     * @throws ConstraintViolationException
+     */
     @Override
     public Transaction process(InboundTransaction inboundTransaction) {
 

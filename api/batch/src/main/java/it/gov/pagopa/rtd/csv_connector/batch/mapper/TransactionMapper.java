@@ -6,9 +6,20 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Alessio Cialini
+ * Class to be used to map a Transaction from an InboundTransaction
+ */
+
 @Service
 public class TransactionMapper {
 
+    /**
+     *
+     * @param inboundTransaction
+     *              instance of an InboundTransaction, to be mapped into a Tranaction
+     * @return Transaction instance from the input inboundTransaction, normalized and with an hashed PAN
+     */
     public Transaction map(InboundTransaction inboundTransaction) {
 
         Transaction transaction = null;
