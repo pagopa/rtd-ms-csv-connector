@@ -360,7 +360,7 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     public TaskScheduler poolScheduler() {
-        return beanFactory.getBean(ThreadPoolTaskScheduler.class);
+        return new ThreadPoolTaskScheduler();
     }
 
 }
