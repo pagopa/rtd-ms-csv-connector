@@ -27,8 +27,10 @@ import java.util.Collection;
 @Slf4j
 public class ArchivalTasklet implements Tasklet, InitializingBean {
 
-    private String errorPath;
     private String successPath;
+    private String errorPath;
+
+    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     /**
      *
@@ -36,10 +38,10 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
      */
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(new PathMatchingResourcePatternResolver()
-                .getResources("file:" + successPath + "*.pgp"), "directory must be set");
-        Assert.notNull(new PathMatchingResourcePatternResolver()
-                .getResources("file:" + errorPath + "*.pgp"), "directory must be set");
+        Assert.notNull(resolver.getResources("file:" + successPath + "*.pgp"),
+                "directory must be set");
+        Assert.notNull(resolver.getResources("file:" + errorPath + "*.pgp"),
+                "directory must be set");
     }
 
     /**
@@ -64,12 +66,13 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                     String archivalPath =
                             BatchStatus.COMPLETED.equals(stepExecution.getStatus()) &&
                                     stepExecution.getFailureExceptions().size() <= 0 ?
-                                    successPath.replace("file:/", "") :
-                                    errorPath.replace("file:/", "");
+                                    successPath : errorPath;
 
                     String[] filename = file.split("/");
 
                     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+                    archivalPath = resolver.getResources(archivalPath)[0].getFile().getAbsolutePath();
 
                     File destFile = FileUtils.getFile(archivalPath + "/" +
                             OffsetDateTime.now().format(fmt) + "_" + filename[filename.length - 1]);

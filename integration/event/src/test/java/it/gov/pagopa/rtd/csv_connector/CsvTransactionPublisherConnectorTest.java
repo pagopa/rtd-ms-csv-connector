@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(
         locations = "classpath:config/testCsvTransactionPublisher.properties",
         properties = {
+
                 "connectors.eventConfigurations.items.CsvTransactionPublisherConnector.bootstrapServers=${spring.embedded.kafka.brokers}"
         })
 public class CsvTransactionPublisherConnectorTest extends

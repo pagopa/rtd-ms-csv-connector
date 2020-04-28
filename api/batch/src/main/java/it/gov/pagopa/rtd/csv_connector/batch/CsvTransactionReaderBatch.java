@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
-import com.zaxxer.hikari.HikariDataSource;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
@@ -49,6 +48,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.sql.DataSource;
 import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -102,8 +102,7 @@ public class CsvTransactionReaderBatch {
     @Value("${batchConfiguration.CsvTransactionReaderBatch.tablePrefix}")
     private String tablePrefix;
 
-    @Autowired
-    private HikariDataSource dataSource;
+    private DataSource dataSource;
 
     /**
      * Scheduled method used to launch the configured batch job for processing transaction from a defined directory.
@@ -150,12 +149,12 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     public JobRepository getJobRepository() throws Exception {
-        JobRepositoryFactoryBean jobRepositoryFactoryBean = new JobRepositoryFactoryBean();
-        jobRepositoryFactoryBean.setTransactionManager(getTransactionManager());
-        jobRepositoryFactoryBean.setTablePrefix(tablePrefix);
-        jobRepositoryFactoryBean.setDataSource(dataSource);
-        jobRepositoryFactoryBean.afterPropertiesSet();
-        return jobRepositoryFactoryBean.getObject();
+            JobRepositoryFactoryBean jobRepositoryFactoryBean = new JobRepositoryFactoryBean();
+            jobRepositoryFactoryBean.setTransactionManager( getTransactionManager());
+            jobRepositoryFactoryBean.setTablePrefix(tablePrefix);
+            jobRepositoryFactoryBean.setDataSource(dataSource);
+            jobRepositoryFactoryBean.afterPropertiesSet();
+            return jobRepositoryFactoryBean.getObject();
     }
 
     /**
@@ -360,6 +359,11 @@ public class CsvTransactionReaderBatch {
     @Bean
     public TaskScheduler poolScheduler() {
         return new ThreadPoolTaskScheduler();
+    }
+
+    @Autowired
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
 }

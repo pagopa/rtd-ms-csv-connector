@@ -8,6 +8,7 @@ import lombok.SneakyThrows;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +40,9 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
         Assert.notNull(this.resource, "Input resource must be set");
         File fileToProcess = resource.getFile();
         FileInputStream fileToProcessIS = new FileInputStream(fileToProcess);
-        FileInputStream secretFilePathIS = new FileInputStream(secretFilePath);
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource secretKeyResource = resolver.getResource(secretFilePath);
+        FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile());
         try {
             byte[] decryptFileData = PGPDecryptUtil.decryptFile(
                     fileToProcessIS,

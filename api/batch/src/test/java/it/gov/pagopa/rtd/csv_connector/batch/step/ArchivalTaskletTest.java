@@ -45,8 +45,8 @@ public class ArchivalTaskletTest extends BaseTest {
     public void testArchivalStep() {
 
         ArchivalTasklet archivalTasklet = new ArchivalTasklet();
-        archivalTasklet.setErrorPath(resourcePath+"/test-encrypt/error");
-        archivalTasklet.setSuccessPath(resourcePath+"/test-encrypt/success");
+        archivalTasklet.setErrorPath("file:/"+resourcePath+"/test-encrypt/error");
+        archivalTasklet.setSuccessPath("file:/"+resourcePath+"/test-encrypt/success");
 
         Assert.assertEquals(0, FileUtils.sizeOfDirectory(
             new File(resourcePath+"/test-encrypt/error")));
@@ -101,7 +101,7 @@ public class ArchivalTaskletTest extends BaseTest {
 
             archivalTasklet.execute(new StepContribution(execution),chunkContext);
 
-            Assert.assertEquals(2,
+            Assert.assertEquals(1,
                     FileUtils.listFiles(new File(resourcePath+"/test-encrypt/success"),
                             new String[]{"pgp"},false).size());
 
@@ -114,10 +114,12 @@ public class ArchivalTaskletTest extends BaseTest {
 
     @After
     public void tearDown() {
+        FileUtils.listFiles(new File(resourcePath+"/test-encrypt"),
+                new String[]{"pgp"},false).forEach(File::delete);
         FileUtils.listFiles(new File(resourcePath+"/test-encrypt/success"),
-                new String[]{"pgp"},false).forEach(file -> file.delete());
+                new String[]{"pgp"},false).forEach(File::delete);
         FileUtils.listFiles(new File(resourcePath+"/test-encrypt/error"),
-                new String[]{"pgp"},false).forEach(file -> file.delete());
+                new String[]{"pgp"},false).forEach(File::delete);
     }
 
 }

@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
@@ -23,27 +24,24 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.util.ClassUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Class for unit testing of the PGPFlatFileItemReader class
  */
 public class PGPFlatFileItemReaderTest extends BaseTest {
 
-    Path resourceDirectory = Paths.get("src","test","resources");
-    String resourcePath = resourceDirectory.toAbsolutePath().toString();
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @SneakyThrows
     @Before
     public void setUp() {
-        String resourcePath = resourceDirectory.toAbsolutePath().toString();
-        new File(resourcePath + "/test-encrypt/test-trx.pgp").createNewFile();
-        PGPDecryptUtil.encryptFile(new FileOutputStream(resourcePath + "/test-encrypt/test-trx.pgp"),
-                resourcePath + "/test-encrypt/test-trx.csv",
-                PGPDecryptUtil.readPublicKey(new FileInputStream(resourcePath +"/test-encrypt/publicKey.asc")),
+        File testTrxPgp = tempFolder.newFile("test-trx.pgp");
+        PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+                this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
+                PGPDecryptUtil.readPublicKey(
+                        this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
                 false,false);
     }
 
@@ -74,8 +72,9 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
     @Test
     public void testReader() {
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
-                resourcePath +"/test-encrypt/secretKey.asc", "test");
-        flatFileItemReader.setResource(new UrlResource("file:/"+resourcePath+"/test-encrypt/test-trx.pgp"));
+                "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
+                        "/secretKey.asc", "test");
+        flatFileItemReader.setResource(new UrlResource(tempFolder.getRoot().toURI() + "test-trx.pgp"));
         flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
         ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
         flatFileItemReader.update(executionContext);
@@ -88,5 +87,6 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
         Assert.assertEquals(3, executionContext
                 .getInt(ClassUtils.getShortName(FlatFileItemReader.class) + ".read.count"));
     }
+
 
 }

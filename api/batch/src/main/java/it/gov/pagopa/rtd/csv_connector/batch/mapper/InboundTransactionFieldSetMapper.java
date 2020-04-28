@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * FieldSetMapper implementation, to be used for a reader related to files containing InboundTransaction data
  */
+
 @RequiredArgsConstructor
 public class InboundTransactionFieldSetMapper implements FieldSetMapper<InboundTransaction> {
 
