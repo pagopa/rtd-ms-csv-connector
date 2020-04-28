@@ -12,7 +12,6 @@ import javax.validation.*;
 import java.util.Set;
 
 /**
- * @author Alessio Cialini
  * Implementation of the ItemProcessor interface, used to process instances of InboundTransaction,
  * to be mapped into a normalized version defined as instances of Transaction
  */

@@ -19,7 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 /**
- * @author Alessio Cialini
  * implementation of the Tasklet interface, in which the execute method contains the logic for processed file archival,
  * based on the status of conclusion for every file processed
  */

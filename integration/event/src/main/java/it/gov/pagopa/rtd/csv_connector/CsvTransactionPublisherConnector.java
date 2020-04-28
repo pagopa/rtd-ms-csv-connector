@@ -7,7 +7,6 @@ import it.gov.pagopa.rtd.csv_connector.model.Transaction;
 import org.springframework.stereotype.Service;
 
 /**
- * @author ALessio Cialini
  * Class extending the MEDA BaseEventConnector, is responsile for calling a Kafka outbound channel with messages
  * containing a json mapped on the Transaction class
  */

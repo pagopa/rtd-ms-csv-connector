@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * @author Alessio Cialini
  * Implementation of the itemReader interface, to be used for read/processed Transaction files
  */
 

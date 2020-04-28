@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * @author Alessio Cialini
  * Class for testing the CsvTransactionReaderBatch class
  */
 public class CsvTransactionReaderBatchTest {
@@ -24,10 +23,10 @@ public class CsvTransactionReaderBatchTest {
     public void encrypt() {
         Path resourceDirectory = Paths.get("src","test","resources");
         String resourcePath = resourceDirectory.toAbsolutePath().toString();
-        new File(resourcePath + "/test-encrypt/test-trx.pgp").createNewFile();
-        PGPDecryptUtil.encryptFile(new FileOutputStream(resourcePath + "/test-encrypt/test-trx.pgp"),
-                resourcePath + "/test-encrypt/test-trx.csv",
-                PGPDecryptUtil.readPublicKey(new FileInputStream(resourcePath +"/test-encrypt/publicKey.asc")),
+        new File(resourcePath + "/test-encrypt/test-trx-1.pgp").createNewFile();
+        PGPDecryptUtil.encryptFile(new FileOutputStream(resourcePath + "/test-encrypt/test-trx-1.pgp"),
+                resourcePath + "/test-encrypt/test-trx-1.csv",
+                PGPDecryptUtil.readPublicKey(new FileInputStream(resourcePath +"/test-encrypt/prova-pub.asc")),
                 false,false);
     }
 

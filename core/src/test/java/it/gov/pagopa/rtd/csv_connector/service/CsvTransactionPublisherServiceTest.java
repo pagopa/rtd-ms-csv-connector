@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 /**
- * @author ALessio Cialini
  * Class for unit testing of the CsvTransactionPublisherService class
  */
 @ContextConfiguration(classes = CsvTransactionPublisherServiceImpl.class)

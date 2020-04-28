@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @author ALessio Cialini
  * Implementation of the CsvTransactionPublisherService, the class is responsible for handling the transactions
  * to be passed through the connector for the outbound channel
  */

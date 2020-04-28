@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 /**
- * @author ALessio Cialini
  * Class for unit testing of the CsvTransactionPublisherConnector class
  */
 @Import({CsvTransactionPublisherConnector.class})

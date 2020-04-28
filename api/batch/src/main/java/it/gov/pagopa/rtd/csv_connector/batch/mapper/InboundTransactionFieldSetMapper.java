@@ -12,7 +12,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @author Alessio Cialini
  * FieldSetMapper implementation, to be used for a reader related to files containing InboundTransaction data
  */
 @RequiredArgsConstructor

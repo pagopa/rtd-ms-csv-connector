@@ -7,7 +7,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 /**
- * @author Alessio Cialini
  * Class to be used to map a Transaction from an InboundTransaction
  */
 

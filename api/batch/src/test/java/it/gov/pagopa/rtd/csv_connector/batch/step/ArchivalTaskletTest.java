@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Alessio Cialini
  * Class for unit testing of the ArchivalTasklet class
  */
 public class ArchivalTaskletTest extends BaseTest {
