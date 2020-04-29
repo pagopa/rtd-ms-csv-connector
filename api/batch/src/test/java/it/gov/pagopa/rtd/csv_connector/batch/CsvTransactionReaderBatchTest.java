@@ -277,7 +277,7 @@ public class CsvTransactionReaderBatchTest {
                             resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
-            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.atMost(3))
+            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.atMost(4))
                     .process(Mockito.any());
             Mockito.verify(transactionWriterSpy, Mockito.atMost(1))
                     .write(Mockito.any());
