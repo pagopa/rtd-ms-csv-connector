@@ -2,11 +2,12 @@ package it.gov.pagopa.rtd.csv_connector.batch.step;
 
 import eu.sia.meda.BaseTest;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
+import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import lombok.SneakyThrows;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,18 +33,9 @@ import java.io.FileOutputStream;
 public class PGPFlatFileItemReaderTest extends BaseTest {
 
     @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    public TemporaryFolder tempFolder = new TemporaryFolder(
+            new File(getClass().getResource("/test-encrypt").getFile()));
 
-    @SneakyThrows
-    @Before
-    public void setUp() {
-        File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-        PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
-                this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
-                PGPDecryptUtil.readPublicKey(
-                        this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
-                false,false);
-    }
 
     public LineTokenizer transactionLineTokenizer() {
         DelimitedLineTokenizer delimitedLineTokenizer = new DelimitedLineTokenizer();
@@ -70,7 +62,13 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
 
     @SneakyThrows
     @Test
-    public void testReader() {
+    public void testReader_Ok() {
+        File testTrxPgp = tempFolder.newFile("test-trx.pgp");
+        PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+                this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
+                PGPDecryptUtil.readPublicKey(
+                        this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
+                false,false);
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
                 "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
                         "/secretKey.asc", "test");
@@ -88,5 +86,31 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
                 .getInt(ClassUtils.getShortName(FlatFileItemReader.class) + ".read.count"));
     }
 
+    @SneakyThrows
+    @Test
+    public void testReader_WrongKey() {
+        File testTrxPgp = tempFolder.newFile("test-trx.pgp");
+        PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+                this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
+                PGPDecryptUtil.readPublicKey(
+                        this.getClass().getResourceAsStream("/test-encrypt/otherPublicKey.asc")),
+                false,false);
+        PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
+                "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
+                        "/secretKey.asc", "test");
+        flatFileItemReader.setResource(new UrlResource(tempFolder.getRoot().toURI() + "test-trx.pgp"));
+        flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
+        ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
+        flatFileItemReader.update(executionContext);
+        exceptionRule.expect(PGPDecryptException.class);
+        flatFileItemReader.open(executionContext);
+        Assert.assertEquals(0, executionContext
+                .getInt(ClassUtils.getShortName(FlatFileItemReader.class) + ".read.count"));
+    }
+
+    @After
+    public void tearDown() {
+        tempFolder.delete();
+    }
 
 }

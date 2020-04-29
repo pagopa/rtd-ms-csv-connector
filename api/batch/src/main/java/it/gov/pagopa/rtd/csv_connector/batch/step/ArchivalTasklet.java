@@ -68,6 +68,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                                     stepExecution.getFailureExceptions().size() <= 0 ?
                                     successPath : errorPath;
 
+                    file = file.replaceAll("\\\\", "/");
                     String[] filename = file.split("/");
 
                     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
