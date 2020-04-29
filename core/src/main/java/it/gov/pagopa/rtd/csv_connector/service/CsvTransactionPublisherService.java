@@ -4,6 +4,7 @@ import it.gov.pagopa.rtd.csv_connector.model.Transaction;
 
 /**
  * public interface for the CsvTransactionPublisherService
+ * @see CsvTransactionPublisherServiceImpl
  */
 public interface CsvTransactionPublisherService {
 

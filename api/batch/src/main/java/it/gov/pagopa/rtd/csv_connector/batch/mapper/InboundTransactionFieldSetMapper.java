@@ -12,7 +12,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * FieldSetMapper implementation, to be used for a reader related to files containing InboundTransaction data
+ * Implementation of {@link FieldSetMapper}, to be used for a reader
+ * related to files containing {@link InboundTransaction} data
  */
 
 @RequiredArgsConstructor
@@ -23,8 +24,8 @@ public class InboundTransactionFieldSetMapper implements FieldSetMapper<InboundT
     /**
      *
      * @param fieldSet
-     *          instance of FieldSet containing fields related to an InboundTransaction
-     * @return instance of InboundTransaction, mapped from a FieldSet
+     *          instance of FieldSet containing fields related to an {@link InboundTransaction}
+     * @return instance of  {@link InboundTransaction}, mapped from a FieldSet
      * @throws BindException
      */
     @Override

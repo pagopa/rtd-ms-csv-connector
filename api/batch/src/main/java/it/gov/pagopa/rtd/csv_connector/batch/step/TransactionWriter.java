@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Implementation of the itemReader interface, to be used for read/processed Transaction files
+ * Implementation of {@link ItemWriter}, to be used for read/processed Transaction files
  */
 
 @RequiredArgsConstructor
@@ -21,9 +21,9 @@ public class TransactionWriter implements ItemWriter<Transaction> {
     private final CsvTransactionPublisherService csvTransactionPublisherService;
 
     /**
-     * Implementation of the itemReader write method, used for Transaction as the processed class
+     * Implementation of the {@link ItemWriter} write method, used for {@link Transaction} as the processed class
      * @param transactions
-     *              list of Transaction from the process phase of a reader to be sent on an outbound Kafka channel
+     *           list of {@link Transaction} from the process phase of a reader to be sent on an outbound Kafka channel
      * @throws Exception
      */
     @Override

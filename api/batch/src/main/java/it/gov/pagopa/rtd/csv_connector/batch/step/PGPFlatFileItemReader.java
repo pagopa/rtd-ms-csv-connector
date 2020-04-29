@@ -16,7 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 
 /**
- * Extension of the FlatFileItemReader, in which a decrcyption phase is
+ * Extension of {@link FlatFileItemReader}, in which a decryption phase is
  * added to extract the csv content from the .pgp files
  */
 
@@ -34,6 +34,10 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
         super.setResource(resource);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     @SneakyThrows
     @Override
     protected void doOpen() throws Exception {

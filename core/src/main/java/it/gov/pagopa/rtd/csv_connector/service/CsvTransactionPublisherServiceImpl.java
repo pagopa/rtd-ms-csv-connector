@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of the CsvTransactionPublisherService, the class is responsible for handling the transactions
+ * Implementation of {@link CsvTransactionPublisherService}, the class is responsible for handling the transactions
  * to be passed through the connector for the outbound channel
  */
 @Service

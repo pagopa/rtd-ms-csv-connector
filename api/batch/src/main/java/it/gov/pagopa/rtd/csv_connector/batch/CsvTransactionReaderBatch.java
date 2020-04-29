@@ -54,7 +54,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Congiguration of a scheduled batch job to read and decrypt .pgp files with csv content,
+ * Configuration of a scheduled batch job to read and decrypt .pgp files with csv content,
  * to be processed in instances of Transaction class, to be sent in an outbound Kafka channel
  */
 

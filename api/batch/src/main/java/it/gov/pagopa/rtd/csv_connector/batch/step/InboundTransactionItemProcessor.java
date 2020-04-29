@@ -27,10 +27,10 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
     private static final Validator validator = factory.getValidator();
 
     /**
-     * Validates the input InboundTransaction, and maps it to an instance of Transaction
+     * Validates the input {@link InboundTransaction}, and maps it to an instance of Transaction
      * @param inboundTransaction
-     *              instance of InboundTransaction from the read phase of the step
-     * @return instance of Transaction, mapped from a normalized instance of InboundTransaction
+     *              instance of {@link InboundTransaction} from the read phase of the step
+     * @return instance of  {@link Transaction}, mapped from a normalized instance of {@link InboundTransaction}
      * @throws ConstraintViolationException
      */
     @Override

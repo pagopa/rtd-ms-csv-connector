@@ -7,7 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 /**
- * Class to be used to map a Transaction from an InboundTransaction
+ * Class to be used to map a {@link Transaction} from an {@link InboundTransaction}
  */
 
 @Service
@@ -16,8 +16,8 @@ public class TransactionMapper {
     /**
      *
      * @param inboundTransaction
-     *              instance of an InboundTransaction, to be mapped into a Tranaction
-     * @return Transaction instance from the input inboundTransaction, normalized and with an hashed PAN
+     *              instance of an  {@link InboundTransaction}, to be mapped into a {@link Transaction}
+     * @return  {@link Transaction} instance from the input inboundTransaction, normalized and with an hashed PAN
      */
     public Transaction map(InboundTransaction inboundTransaction) {
 

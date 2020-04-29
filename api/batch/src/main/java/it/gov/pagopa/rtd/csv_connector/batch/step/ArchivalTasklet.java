@@ -8,6 +8,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -19,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 /**
- * implementation of the Tasklet interface, in which the execute method contains the logic for processed file archival,
+ * implementation of the {@link Tasklet}, in which the execute method contains the logic for processed file archival,
  * based on the status of conclusion for every file processed
  */
 
@@ -46,7 +47,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
 
     /**
      * Method that contains the logic for file archival, based on the exit status of each step obtained from the
-     * ChunkContext that contains a filename key in the ExecutionContext
+     * ChunkContext that contains a filename key in the {@link ExecutionContext}
      * @param stepContribution
      * @param chunkContext
      * @return Status of the tasklet execution
@@ -71,7 +72,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                     file = file.replaceAll("\\\\", "/");
                     String[] filename = file.split("/");
 
-                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
                     archivalPath = resolver.getResources(archivalPath)[0].getFile().getAbsolutePath();
 
