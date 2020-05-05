@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of {@link CsvTransactionPublisherService}, the class is responsible for handling the transactions
- * to be passed through the connector for the outbound channel
+ * Implementation of {@link CsvTransactionPublisherService}
  */
 @Service
 @Slf4j
@@ -30,10 +29,10 @@ class CsvTransactionPublisherServiceImpl implements CsvTransactionPublisherServi
     }
 
     /**
-     * Method that has the logic for publishing a Transaction to an outbound channel,
+     * Method that has the logic for publishing a {@link Transaction} to an outbound channel,
      * calling on the appropriate connector
      * @param transaction
-     *              Transaction instance to be published
+     *              {@link Transaction} instance to be published
      */
     @Override
     public void publishTransactionEvent(Transaction transaction) {

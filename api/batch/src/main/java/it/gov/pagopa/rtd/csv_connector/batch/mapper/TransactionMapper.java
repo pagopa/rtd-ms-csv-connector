@@ -26,9 +26,21 @@ public class TransactionMapper {
         if (inboundTransaction != null) {
             transaction = Transaction.builder().build();
             BeanUtils.copyProperties(inboundTransaction, transaction, "hpan");
-        }
 
-        transaction.setHpan(DigestUtils.sha256Hex(inboundTransaction.getPan()));
+            transaction.setHpan(DigestUtils.sha256Hex(inboundTransaction.getPan()));
+            transaction.setMerchantId(Integer.valueOf(inboundTransaction.getMerchantId()));
+
+            String acquirerId = inboundTransaction.getAcquirerId();
+            if (acquirerId != null) {
+                transaction.setAcquirerId(Integer.valueOf(acquirerId));
+            }
+
+            String correlationId = inboundTransaction.getCorrelationId();
+            if (correlationId != null) {
+                transaction.setCorrelationId(Integer.valueOf(correlationId));
+            }
+
+        }
 
         return transaction;
 
