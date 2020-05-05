@@ -35,7 +35,8 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
     }
 
     /**
-     *
+     * Override of {@link FlatFileItemReader#doOpen},introduces a
+     * decrypt pass before calling on the parent implementation
      * @throws Exception
      */
     @SneakyThrows

@@ -63,8 +63,12 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
     @SneakyThrows
     @Test
     public void testReader_Ok() {
+
         File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-        PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+
+        FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
+
+        PGPDecryptUtil.encryptFile(textTrxPgpFOS,
                 this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
                 PGPDecryptUtil.readPublicKey(
                         this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
@@ -72,6 +76,9 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
                 "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
                         "/secretKey.asc", "test");
+
+        textTrxPgpFOS.close();
+
         flatFileItemReader.setResource(new UrlResource(tempFolder.getRoot().toURI() + "test-trx.pgp"));
         flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
         ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
@@ -89,12 +96,19 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
     @SneakyThrows
     @Test
     public void testReader_WrongKey() {
+
         File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-        PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+
+        FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
+
+        PGPDecryptUtil.encryptFile(textTrxPgpFOS,
                 this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
                 PGPDecryptUtil.readPublicKey(
                         this.getClass().getResourceAsStream("/test-encrypt/otherPublicKey.asc")),
                 false,false);
+
+        textTrxPgpFOS.close();
+
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
                 "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
                         "/secretKey.asc", "test");

@@ -4,6 +4,8 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
+import org.bouncycastle.openpgp.operator.jcajce.*;
 
 import java.io.*;
 import java.security.NoSuchProviderException;
@@ -31,18 +33,28 @@ public class PGPDecryptUtil {
      * @throws PGPException
      * @throws NoSuchProviderException
      */
-    private static PGPPrivateKey findSecretKey(InputStream keyIn, long keyID, char[] pass)
-            throws IOException, PGPException, NoSuchProviderException {
-        PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(
-                org.bouncycastle.openpgp.PGPUtil.getDecoderStream(keyIn));
-
+    /**
+     * Search a secret key ring collection for a secret key corresponding to keyID if it
+     * exists.
+     *
+     * @param pgpSec a secret key ring collection.
+     * @param keyID keyID we want.
+     * @param pass passphrase to decrypt secret key with.
+     * @return the private key.
+     * @throws PGPException
+     * @throws NoSuchProviderException
+     */
+    static PGPPrivateKey findSecretKey(PGPSecretKeyRingCollection pgpSec, long keyID, char[] pass)
+            throws PGPException, NoSuchProviderException
+    {
         PGPSecretKey pgpSecKey = pgpSec.getSecretKey(keyID);
 
-        if (pgpSecKey == null) {
+        if (pgpSecKey == null)
+        {
             return null;
         }
 
-        return pgpSecKey.extractPrivateKey(pass, "BC");
+        return pgpSecKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(pass));
     }
 
     /**
@@ -54,170 +66,202 @@ public class PGPDecryptUtil {
     @SuppressWarnings("unchecked")
     public static byte[] decryptFile(InputStream in, InputStream keyIn, char[] passwd)
             throws IOException, NoSuchProviderException, PGPException {
+
         Security.addProvider(new BouncyCastleProvider());
 
-        in = org.bouncycastle.openpgp.PGPUtil.getDecoderStream(in);
+        in = PGPUtil.getDecoderStream(in);
 
-        PGPObjectFactory pgpF = new PGPObjectFactory(in);
-        PGPEncryptedDataList enc;
+        try
+        {
+            JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(in);
+            PGPEncryptedDataList enc;
 
-        Object o = pgpF.nextObject();
-        //
-        // the first object might be a PGP marker packet.
-        //
-        if (o instanceof PGPEncryptedDataList) {
-            enc = (PGPEncryptedDataList) o;
-        } else {
-            enc = (PGPEncryptedDataList) pgpF.nextObject();
-        }
-
-        Iterator<PGPPublicKeyEncryptedData> it = enc.getEncryptedDataObjects();
-        PGPPrivateKey sKey = null;
-        PGPPublicKeyEncryptedData pbe = null;
-
-        while (sKey == null && it.hasNext()) {
-            pbe = it.next();
-
-            sKey = findSecretKey(keyIn, pbe.getKeyID(), passwd);
-        }
-
-        if (sKey == null) {
-            throw new IllegalArgumentException("Secret key for message not found.");
-        }
-
-        InputStream clear = pbe.getDataStream(sKey, "BC");
-
-        if (pbe.isIntegrityProtected()) {
-            if (!pbe.verify()) {
-                throw new PGPException("Message failed integrity check");
+            Object o = pgpF.nextObject();
+            //
+            // the first object might be a PGP marker packet.
+            //
+            if (o instanceof PGPEncryptedDataList)
+            {
+                enc = (PGPEncryptedDataList)o;
             }
+            else
+            {
+                enc = (PGPEncryptedDataList)pgpF.nextObject();
+            }
+
+            //
+            // find the secret key
+            //
+            Iterator it = enc.getEncryptedDataObjects();
+            PGPPrivateKey sKey = null;
+            PGPPublicKeyEncryptedData pbe = null;
+            PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(
+                    PGPUtil.getDecoderStream(keyIn), new JcaKeyFingerprintCalculator());
+
+            while (sKey == null && it.hasNext())
+            {
+                pbe = (PGPPublicKeyEncryptedData)it.next();
+
+                sKey = findSecretKey(pgpSec, pbe.getKeyID(), passwd);
+            }
+
+            if (sKey == null)
+            {
+                throw new IllegalArgumentException("secret key for message not found.");
+            }
+
+            InputStream clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder()
+                    .setProvider("BC").build(sKey));
+
+            JcaPGPObjectFactory plainFact = new JcaPGPObjectFactory(clear);
+
+            PGPCompressedData cData = (PGPCompressedData)plainFact.nextObject();
+
+            InputStream compressedStream = new BufferedInputStream(cData.getDataStream());
+            JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(compressedStream);
+
+            Object message = pgpFact.nextObject();
+
+            if (pbe.isIntegrityProtected())
+            {
+                if (!pbe.verify())
+                {
+                    System.err.println("message failed integrity check");
+                }
+                else
+                {
+                    System.err.println("message integrity check passed");
+                }
+            }
+            else
+            {
+                System.err.println("no message integrity check");
+            }
+
+            if (message instanceof PGPLiteralData)
+            {
+                PGPLiteralData ld = (PGPLiteralData)message;
+
+                InputStream unc = ld.getInputStream();
+
+                byte[] decryptedData = IOUtils.toByteArray(unc);
+
+                in.close();
+                unc.close();
+                clear.close();
+
+                return decryptedData;
+
+            }
+            else if (message instanceof PGPOnePassSignatureList)
+            {
+                throw new PGPException("encrypted message contains a signed message - not literal data.");
+            }
+            else
+            {
+                throw new PGPException("message is not a simple encrypted file - type unknown.");
+            }
+
         }
+        catch (PGPException e)
+        {
+            System.err.println(e);
+            if (e.getUnderlyingException() != null)
+            {
+                e.getUnderlyingException().printStackTrace();
+            }
+            throw e;
 
-        PGPObjectFactory plainFact = new PGPObjectFactory(clear);
-
-        Object message = plainFact.nextObject();
-
-        if (message instanceof PGPCompressedData) {
-            PGPCompressedData cData = (PGPCompressedData) message;
-            PGPObjectFactory pgpFact = new PGPObjectFactory(cData.getDataStream());
-
-            message = pgpFact.nextObject();
-        }
-
-        if (message instanceof PGPLiteralData) {
-            PGPLiteralData ld = (PGPLiteralData) message;
-
-            InputStream unc = ld.getInputStream();
-
-            return IOUtils.toByteArray(unc);
-
-        } else if (message instanceof PGPOnePassSignatureList) {
-            throw new PGPException("Encrypted message contains a signed message - not literal data.");
-        } else {
-            throw new PGPException("Message is not a simple encrypted file - type unknown.");
+        } finally {
+            in.close();
         }
 
     }
 
     /**
-     * Load a public key ring collection from keyIn and find the public key
-     *  if it exists.
+     * A simple routine that opens a key ring file and loads the first available key
+     * suitable for encryption.
      *
-     * @param in
-     *           input stream representing a key ring collection.
-     * @return
+     * @param input data stream containing the public key data
+     * @return the first public key found.
      * @throws IOException
      * @throws PGPException
      */
-    public static PGPPublicKey readPublicKey(InputStream in)
-            throws IOException, PGPException
+    public static PGPPublicKey readPublicKey(InputStream input) throws IOException, PGPException
     {
+        PGPPublicKeyRingCollection pgpPub = new PGPPublicKeyRingCollection(
+                PGPUtil.getDecoderStream(input), new JcaKeyFingerprintCalculator());
 
-        PGPPublicKeyRingCollection keyRingCollection = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(in));
+        Iterator keyRingIter = pgpPub.getKeyRings();
+        while (keyRingIter.hasNext())
+        {
+            PGPPublicKeyRing keyRing = (PGPPublicKeyRing)keyRingIter.next();
 
-        //
-        // we just loop through the collection till we find a key suitable for encryption, in the real
-        // world you would probably want to be a bit smarter about this.
-        //
-        PGPPublicKey publicKey = null;
+            Iterator keyIter = keyRing.getPublicKeys();
+            while (keyIter.hasNext())
+            {
+                PGPPublicKey key = (PGPPublicKey)keyIter.next();
 
-        //
-        // iterate through the key rings.
-        //
-        Iterator<PGPPublicKeyRing> rIt = keyRingCollection.getKeyRings();
-
-        while (publicKey == null && rIt.hasNext()) {
-            PGPPublicKeyRing kRing = rIt.next();
-            Iterator<PGPPublicKey> kIt = kRing.getPublicKeys();
-            while (publicKey == null && kIt.hasNext()) {
-                PGPPublicKey key = kIt.next();
-                if (key.isEncryptionKey()) {
-                    publicKey = key;
+                if (key.isEncryptionKey())
+                {
+                    return key;
                 }
             }
         }
 
-        if (publicKey == null) {
-            throw new IllegalArgumentException("Can't find public key in the key ring.");
-        }
-        //     if (!isForEncryption(publicKey)) {
-        //       throw new IllegalArgumentException("KeyID " + publicKey.getKeyID() + " not flagged for encryption.");
-        //   }
-
-        return publicKey;
+        throw new IllegalArgumentException("Can't find encryption key in key ring.");
     }
 
-    /**
-     * Load a secret key ring collection from keyIn and find the secret key
-     * corresponding to keyID if it exists.
-     *
-     * @param out
-     *            output stream representing the encrypted file.
-     * @param fileName
-     *            filename referring to the file encrypt.
-     * @param encKey
-     *            public key to be used for encrypting.
-     * @param armor
-     *            define if the output stream has to be armored.
-     * @param withIntegrityCheck
-     *            define if the encrypted file has to pass an integrity check.
-     * @return
-     * @throws IOException
-     * @throws PGPException
-     * @throws NoSuchProviderException
-     */
     public static void encryptFile(
-            OutputStream out, String fileName, PGPPublicKey encKey, boolean armor, boolean withIntegrityCheck)
-                throws IOException, NoSuchProviderException, PGPException {
+            OutputStream    out,
+            String          fileName,
+            PGPPublicKey    encKey,
+            boolean         armor,
+            boolean         withIntegrityCheck)
+            throws IOException, NoSuchProviderException
+    {
+
         Security.addProvider(new BouncyCastleProvider());
 
-        if (armor) {
+        if (armor)
+        {
             out = new ArmoredOutputStream(out);
         }
 
-        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+        try
+        {
+            PGPEncryptedDataGenerator cPk = new PGPEncryptedDataGenerator(
+                    new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5)
+                            .setWithIntegrityPacket(withIntegrityCheck)
+                            .setSecureRandom(new SecureRandom()).setProvider("BC"));
 
-        PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
+            cPk.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(encKey).setProvider("BC"));
 
-        org.bouncycastle.openpgp.PGPUtil.writeFileToLiteralData(comData.open(bOut), PGPLiteralData.BINARY,
-                new File(fileName));
+            OutputStream cOut = cPk.open(out, new byte[1 << 16]);
 
-        comData.close();
+            PGPCompressedDataGenerator  comData = new PGPCompressedDataGenerator(
+                    PGPCompressedData.ZIP);
 
-        PGPEncryptedDataGenerator cPk = new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck,
-                new SecureRandom(), "BC");
+            PGPUtil.writeFileToLiteralData(
+                    comData.open(cOut), PGPLiteralData.BINARY, new File(fileName), new byte[1 << 16]);
 
-        cPk.addMethod(encKey);
+            comData.close();
 
-        byte[] bytes = bOut.toByteArray();
+            cOut.close();
 
-        OutputStream cOut = cPk.open(out, bytes.length);
-
-        cOut.write(bytes);
-
-        cOut.close();
-
-        out.close();
+            if (armor)
+            {
+                out.close();
+            }
+        }
+        catch (PGPException e)
+        {
+            System.err.println(e);
+            if (e.getUnderlyingException() != null)
+            {
+                e.getUnderlyingException().printStackTrace();
+            }
+        }
     }
 
 }

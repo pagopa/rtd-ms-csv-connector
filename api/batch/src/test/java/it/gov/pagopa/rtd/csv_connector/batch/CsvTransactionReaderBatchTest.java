@@ -75,7 +75,7 @@ import java.util.Date;
 
                 "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",
                 "batchConfiguration.CsvTransactionReaderBatch.passphrase=test",
-                "batchConfiguration.CsvTransactionReaderBatch.skipLimit=2",
+                "batchConfiguration.CsvTransactionReaderBatch.skipLimit=3",
                 "batchConfiguration.CsvTransactionReaderBatch.classpath=classpath:/test-encrypt/**/*.pgp",
                 "batchConfiguration.CsvTransactionReaderBatch.successArchivePath=classpath:/test-encrypt/**/success",
                 "batchConfiguration.CsvTransactionReaderBatch.errorArchivePath=classpath:/test-encrypt/**/error",
@@ -145,11 +145,15 @@ public class CsvTransactionReaderBatchTest {
         try {
 
             File testTrxPgp = tempFolder.newFile("wrong-test-trx.pgp");
-            PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+            FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
+
+            PGPDecryptUtil.encryptFile(textTrxPgpFOS,
                     this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
                     PGPDecryptUtil.readPublicKey(
                             this.getClass().getResourceAsStream("/test-encrypt/otherPublicKey.asc")),
                     false,false);
+
+            textTrxPgpFOS.close();
 
             JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters());
             Assert.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
@@ -180,11 +184,16 @@ public class CsvTransactionReaderBatchTest {
         try {
 
             File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-            PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+
+            FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
+
+            PGPDecryptUtil.encryptFile(textTrxPgpFOS,
                     this.getClass().getResource("/test-encrypt").getFile() + "/test-trx-ns.csv",
                     PGPDecryptUtil.readPublicKey(
                             this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
                     false,false);
+
+            textTrxPgpFOS.close();
 
             JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters());
             Assert.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
@@ -219,11 +228,16 @@ public class CsvTransactionReaderBatchTest {
         try {
 
             File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-            PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+
+            FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
+
+            PGPDecryptUtil.encryptFile(textTrxPgpFOS,
                     this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
                     PGPDecryptUtil.readPublicKey(
                             this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
                     false,false);
+
+            textTrxPgpFOS.close();
 
             JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters());
             Assert.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
@@ -258,11 +272,16 @@ public class CsvTransactionReaderBatchTest {
         try {
 
             File testTrxPgp = tempFolder.newFile("test-err-trx.pgp");
-            PGPDecryptUtil.encryptFile(new FileOutputStream(testTrxPgp),
+
+            FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
+
+            PGPDecryptUtil.encryptFile(textTrxPgpFOS,
                     this.getClass().getResource("/test-encrypt").getFile() + "/test-err-trx.csv",
                     PGPDecryptUtil.readPublicKey(
                             this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
                     false,false);
+
+            textTrxPgpFOS.close();
 
             JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters());
             Assert.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
@@ -277,9 +296,9 @@ public class CsvTransactionReaderBatchTest {
                             resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
-            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.atMost(4))
+            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.atMost(5))
                     .process(Mockito.any());
-            Mockito.verify(transactionWriterSpy, Mockito.atMost(1))
+            Mockito.verify(transactionWriterSpy, Mockito.atMost(2))
                     .write(Mockito.any());
             Mockito.verify(csvTransactionPublisherServiceSpy, Mockito.atMost(1))
                     .publishTransactionEvent(Mockito.any());
