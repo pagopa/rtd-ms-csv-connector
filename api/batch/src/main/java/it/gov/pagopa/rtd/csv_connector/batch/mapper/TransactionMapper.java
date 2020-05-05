@@ -5,6 +5,7 @@ import it.gov.pagopa.rtd.csv_connector.model.Transaction;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * Class to be used to map a {@link Transaction} from an {@link InboundTransaction}
@@ -31,12 +32,12 @@ public class TransactionMapper {
             transaction.setMerchantId(Integer.valueOf(inboundTransaction.getMerchantId()));
 
             String acquirerId = inboundTransaction.getAcquirerId();
-            if (acquirerId != null) {
+            if (StringUtils.isEmpty(acquirerId)) {
                 transaction.setAcquirerId(Integer.valueOf(acquirerId));
             }
 
             String correlationId = inboundTransaction.getCorrelationId();
-            if (correlationId != null) {
+            if (StringUtils.isEmpty(acquirerId)) {
                 transaction.setCorrelationId(Integer.valueOf(correlationId));
             }
 
