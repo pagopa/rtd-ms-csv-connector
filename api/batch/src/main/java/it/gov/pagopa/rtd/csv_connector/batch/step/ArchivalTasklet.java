@@ -3,6 +3,7 @@ package it.gov.pagopa.rtd.csv_connector.batch.step;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
@@ -76,8 +77,8 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
 
                     archivalPath = resolver.getResources(archivalPath)[0].getFile().getAbsolutePath();
 
-                    File destFile = FileUtils.getFile(archivalPath + "/" +
-                            OffsetDateTime.now().format(fmt) + "_" + filename[filename.length - 1]);
+                    File destFile = FileUtils.getFile(archivalPath + "/" + RandomUtils.nextLong() +
+                            "_" + OffsetDateTime.now().format(fmt) + "_" + filename[filename.length - 1]);
 
                     FileUtils.moveFile(FileUtils.getFile(path), destFile);
 
