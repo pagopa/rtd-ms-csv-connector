@@ -27,4 +27,4 @@ meda:
 
 logging:
   level:
-    it.gov.pagopa.rtd..csv_connector: ${LOG_LEVEL_RTD_CSV_CONNECTOR:DEBUG}
+    it.gov.pagopa.rtd.csv_connector: ${LOG_LEVEL_RTD_CSV_CONNECTOR:DEBUG}
