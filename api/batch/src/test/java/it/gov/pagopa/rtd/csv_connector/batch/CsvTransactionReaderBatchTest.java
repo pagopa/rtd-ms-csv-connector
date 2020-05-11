@@ -79,6 +79,8 @@ import java.util.Date;
                 "batchConfiguration.CsvTransactionReaderBatch.classpath=classpath:/test-encrypt/**/*.pgp",
                 "batchConfiguration.CsvTransactionReaderBatch.successArchivePath=classpath:/test-encrypt/**/success",
                 "batchConfiguration.CsvTransactionReaderBatch.errorArchivePath=classpath:/test-encrypt/**/error",
+                "batchConfiguration.CsvTransactionReaderBatch.timestampPattern=MM/dd/yyyy HH:mm:ss",
+                "batchConfiguration.CsvTransactionReaderBatch.linesToSkip=0",
                 "connectors.eventConfigurations.items.CsvTransactionPublisherConnector.bootstrapServers=${spring.embedded.kafka.brokers}"
         })
 public class CsvTransactionReaderBatchTest {

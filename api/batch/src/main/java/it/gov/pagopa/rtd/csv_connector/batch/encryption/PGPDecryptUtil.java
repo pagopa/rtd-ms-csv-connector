@@ -71,12 +71,14 @@ public class PGPDecryptUtil {
 
         in = PGPUtil.getDecoderStream(in);
 
+        in = PGPUtil.getDecoderStream(in);
+
         try
         {
             JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(in);
-            PGPEncryptedDataList enc;
+            PGPEncryptedDataList    enc;
 
-            Object o = pgpF.nextObject();
+            Object                  o = pgpF.nextObject();
             //
             // the first object might be a PGP marker packet.
             //
@@ -92,10 +94,10 @@ public class PGPDecryptUtil {
             //
             // find the secret key
             //
-            Iterator it = enc.getEncryptedDataObjects();
-            PGPPrivateKey sKey = null;
-            PGPPublicKeyEncryptedData pbe = null;
-            PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(
+            Iterator                    it = enc.getEncryptedDataObjects();
+            PGPPrivateKey               sKey = null;
+            PGPPublicKeyEncryptedData   pbe = null;
+            PGPSecretKeyRingCollection  pgpSec = new PGPSecretKeyRingCollection(
                     PGPUtil.getDecoderStream(keyIn), new JcaKeyFingerprintCalculator());
 
             while (sKey == null && it.hasNext())
@@ -115,27 +117,14 @@ public class PGPDecryptUtil {
 
             JcaPGPObjectFactory plainFact = new JcaPGPObjectFactory(clear);
 
-            PGPCompressedData cData = (PGPCompressedData)plainFact.nextObject();
+            Object message = plainFact.nextObject();
 
-            InputStream compressedStream = new BufferedInputStream(cData.getDataStream());
-            JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(compressedStream);
-
-            Object message = pgpFact.nextObject();
-
-            if (pbe.isIntegrityProtected())
+            if (message instanceof PGPCompressedData)
             {
-                if (!pbe.verify())
-                {
-                    System.err.println("message failed integrity check");
-                }
-                else
-                {
-                    System.err.println("message integrity check passed");
-                }
-            }
-            else
-            {
-                System.err.println("no message integrity check");
+                PGPCompressedData cData = (PGPCompressedData)message;
+                JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(cData.getDataStream());
+
+                message = pgpFact.nextObject();
             }
 
             if (message instanceof PGPLiteralData)
