@@ -285,7 +285,7 @@ public class CsvTransactionReaderBatch {
     /**
      *
      * @return master step to be used as the formal main step in the reading phase of the job,
-     * partitioned for scaliblity on multiple file reading
+     * partitioned for scalability on multiple file reading
      * @throws Exception
      */
     @Bean

@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.sia.meda.connector.jpa.config.ArchJPAConfigurationService;
 import eu.sia.meda.core.properties.PropertiesManager;
 import eu.sia.meda.event.configuration.ArchEventConfigurationService;
 import eu.sia.meda.event.transformer.SimpleEventRequestTransformer;
@@ -59,6 +60,7 @@ import java.util.Date;
 @EnableAutoConfiguration
 @ContextConfiguration(classes = {
         TestConfig.class,
+        ArchJPAConfigurationService.class,
         JacksonAutoConfiguration.class,
         AuthenticationConfiguration.class,
         KafkaAutoConfiguration.class,
@@ -70,9 +72,11 @@ import java.util.Date;
         CsvTransactionReaderBatch.class
 })
 @TestPropertySource(
-        locations = "classpath:config/testCsvTransactionPublisher.properties",
+        locations = {
+                "classpath:config/testCsvTransactionPublisher.properties",
+                "classpath:config/testJpaConnectionConfig.properties"
+        },
         properties = {
-
                 "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",
                 "batchConfiguration.CsvTransactionReaderBatch.passphrase=test",
                 "batchConfiguration.CsvTransactionReaderBatch.skipLimit=3",

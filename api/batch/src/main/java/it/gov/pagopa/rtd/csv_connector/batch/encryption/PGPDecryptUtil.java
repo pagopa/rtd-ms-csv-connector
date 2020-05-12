@@ -71,14 +71,12 @@ public class PGPDecryptUtil {
 
         in = PGPUtil.getDecoderStream(in);
 
-        in = PGPUtil.getDecoderStream(in);
-
         try
         {
             JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(in);
             PGPEncryptedDataList    enc;
 
-            Object                  o = pgpF.nextObject();
+            Object o = pgpF.nextObject();
             //
             // the first object might be a PGP marker packet.
             //

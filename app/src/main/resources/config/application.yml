@@ -8,6 +8,9 @@ spring:
   batch:
     job:
       enabled: false
+    initialize-schema: ${RTD_BATCH_INITIALIZE_SCHEMA:always}
+  main:
+    allow-bean-definition-overriding: true
 
 info:
   build:
