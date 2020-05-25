@@ -69,7 +69,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
 
     protected InboundTransaction getInboundTransaction() {
         return InboundTransaction.builder()
-                .idTrxAcquirer(1)
+                .idTrxAcquirer("1")
                 .acquirerCode("001")
                 .trxDate(OffsetDateTime.parse("2020-04-09T16:22:45.304Z"))
                 .amount(BigDecimal.valueOf(1313.13))
@@ -78,7 +78,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                 .merchantId("0")
                 .circuitType("00")
                 .mcc("813")
-                .idTrxIssuer(0)
+                .idTrxIssuer("0")
                 .amountCurrency("833")
                 .correlationId("1")
                 .acquirerId("0")
