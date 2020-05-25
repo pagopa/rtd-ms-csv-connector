@@ -30,9 +30,9 @@ public class Transaction {
 
     String circuitType;
 
-    Integer idTrxIssuer;
+    String idTrxIssuer;
 
-    Integer correlationId;
+    String correlationId;
 
     BigDecimal amount;
 
@@ -40,8 +40,8 @@ public class Transaction {
 
     String mcc;
 
-    Integer acquirerId;
+    String acquirerId;
 
-    Integer merchantId;
+    String merchantId;
 
 }

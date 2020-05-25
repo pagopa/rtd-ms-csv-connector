@@ -47,8 +47,8 @@ public class InboundTransactionFieldSetMapper implements FieldSetMapper<InboundT
                         .trxDate(dtf != null ?
                                 ZonedDateTime.parse(fieldSet.readString("timestamp"), dtf).toOffsetDateTime() :
                                 OffsetDateTime.parse(fieldSet.readString("timestamp")))
-                        .idTrxAcquirer(fieldSet.readInt("id_trx_acquirer"))
-                        .idTrxIssuer(fieldSet.readInt("id_trx_issuer"))
+                        .idTrxAcquirer(fieldSet.readString("id_trx_acquirer"))
+                        .idTrxIssuer(fieldSet.readString("id_trx_issuer"))
                         .correlationId(fieldSet.readString("correlation_id"))
                         .amount(fieldSet.readBigDecimal("importo"))
                         .amountCurrency(fieldSet.readString("currency"))
