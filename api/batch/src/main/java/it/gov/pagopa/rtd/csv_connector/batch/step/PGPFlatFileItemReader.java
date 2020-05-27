@@ -37,6 +37,7 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
     /**
      * Override of {@link FlatFileItemReader#doOpen},introduces a
      * decrypt pass before calling on the parent implementation
+     *
      * @throws Exception
      */
     @SneakyThrows
@@ -44,22 +45,20 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
     protected void doOpen() throws Exception {
         Assert.notNull(this.resource, "Input resource must be set");
         File fileToProcess = resource.getFile();
-        FileInputStream fileToProcessIS = new FileInputStream(fileToProcess);
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource secretKeyResource = resolver.getResource(secretFilePath);
-        FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile());
-        try {
-            byte[] decryptFileData = PGPDecryptUtil.decryptFile(
-                    fileToProcessIS,
-                    secretFilePathIS,
-                    passphrase.toCharArray()
-            );
-            super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
-        } catch (Exception e) {
-            throw new PGPDecryptException();
-        } finally {
-            fileToProcessIS.close();
-            secretFilePathIS.close();
+        try (FileInputStream fileToProcessIS = new FileInputStream(fileToProcess);
+             FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile())) {
+            try {
+                byte[] decryptFileData = PGPDecryptUtil.decryptFile(
+                        fileToProcessIS,
+                        secretFilePathIS,
+                        passphrase.toCharArray()
+                );
+                super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
+            } catch (Exception e) {
+                throw new PGPDecryptException();
+            }
         }
         super.doOpen();
 
