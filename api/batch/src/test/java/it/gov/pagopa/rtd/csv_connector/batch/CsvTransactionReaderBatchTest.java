@@ -1,7 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.sia.meda.connector.jpa.config.ArchJPAConfigurationService;
 import eu.sia.meda.core.properties.PropertiesManager;
 import eu.sia.meda.event.configuration.ArchEventConfigurationService;
 import eu.sia.meda.event.transformer.SimpleEventRequestTransformer;
@@ -30,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -38,7 +38,9 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -46,6 +48,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.management.ManagementFactory;
 import java.util.Date;
+
+import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
 
 /**
  * Class for testing the CsvTransactionReaderBatch class
@@ -57,10 +61,14 @@ import java.util.Date;
         count = 1,
         controlledShutdown = true
 )
+@DataJpaTest
+@Transactional(propagation = NOT_SUPPORTED)
+@Sql({
+        "classpath:org/springframework/batch/core/schema-drop-hsqldb.sql",
+        "classpath:org/springframework/batch/core/schema-hsqldb.sql"})
 @EnableAutoConfiguration
 @ContextConfiguration(classes = {
         TestConfig.class,
-        ArchJPAConfigurationService.class,
         JacksonAutoConfiguration.class,
         AuthenticationConfiguration.class,
         KafkaAutoConfiguration.class,
@@ -74,7 +82,6 @@ import java.util.Date;
 @TestPropertySource(
         locations = {
                 "classpath:config/testCsvTransactionPublisher.properties",
-                "classpath:config/testJpaConnectionConfig.properties"
         },
         properties = {
                 "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",

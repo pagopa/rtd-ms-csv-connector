@@ -8,7 +8,7 @@ import org.springframework.context.annotation.FilterType;
  * Test configuration class for api/event
  */
 
-@ComponentScan(basePackages = {"it.gov.pagopa.rtd"}, excludeFilters = {
+@ComponentScan(basePackages = {"it.gov.pagopa"}, excludeFilters = {
         @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, value= CsvConnectorBatchJpaConfig.class)
 })
 public class TestConfig {

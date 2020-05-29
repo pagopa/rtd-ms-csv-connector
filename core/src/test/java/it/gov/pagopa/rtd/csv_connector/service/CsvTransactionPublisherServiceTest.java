@@ -76,7 +76,7 @@ public class CsvTransactionPublisherServiceTest extends BaseSpringTest {
 
     protected Transaction getRequestObject() {
         return Transaction.builder()
-                .idTrxAcquirer(1)
+                .idTrxAcquirer("1")
                 .acquirerCode("001")
                 .trxDate(OffsetDateTime.parse("2020-04-09T16:22:45.304Z"))
                 .amount(BigDecimal.valueOf(1313.13))

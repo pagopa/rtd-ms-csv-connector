@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 @EqualsAndHashCode(of = {"idTrxAcquirer", "acquirerCode", "trxDate"}, callSuper = false)
 public class Transaction {
 
-    Integer idTrxAcquirer;
+    String idTrxAcquirer;
 
     String acquirerCode;
 
