@@ -38,11 +38,30 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
 
         try {
             InboundTransaction inboundTransaction = getInboundTransaction();
+            this.inboundTransactionItemProcessor.setApplyHashing(true);
             Transaction transaction = inboundTransactionItemProcessor.
                     process(inboundTransaction);
             Assert.assertNotNull(transaction);
             Assert.assertEquals(transaction.getHpan(), DigestUtils.sha256Hex(inboundTransaction.getPan()));
-            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction));
+            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(true));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+
+    }
+
+    @Test
+    public void processValidInboundTransaction_NoHashing() {
+
+        try {
+            InboundTransaction inboundTransaction = getInboundTransaction();
+            this.inboundTransactionItemProcessor.setApplyHashing(false);
+            Transaction transaction = inboundTransactionItemProcessor.
+                    process(inboundTransaction);
+            Assert.assertNotNull(transaction);
+            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
+            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();

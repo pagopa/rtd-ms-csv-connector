@@ -25,6 +25,7 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
 
     private final String secretFilePath;
     private final String passphrase;
+    private final Boolean applyDecrypt;
 
     private Resource resource;
 
@@ -44,20 +45,22 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
     @Override
     protected void doOpen() throws Exception {
         Assert.notNull(this.resource, "Input resource must be set");
-        File fileToProcess = resource.getFile();
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource secretKeyResource = resolver.getResource(secretFilePath);
-        try (FileInputStream fileToProcessIS = new FileInputStream(fileToProcess);
-             FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile())) {
-            try {
-                byte[] decryptFileData = PGPDecryptUtil.decryptFile(
-                        fileToProcessIS,
-                        secretFilePathIS,
-                        passphrase.toCharArray()
-                );
-                super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
-            } catch (Exception e) {
-                throw new PGPDecryptException();
+        if (applyDecrypt) {
+            File fileToProcess = resource.getFile();
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource secretKeyResource = resolver.getResource(secretFilePath);
+            try (FileInputStream fileToProcessIS = new FileInputStream(fileToProcess);
+                 FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile())) {
+                try {
+                    byte[] decryptFileData = PGPDecryptUtil.decryptFile(
+                            fileToProcessIS,
+                            secretFilePathIS,
+                            passphrase.toCharArray()
+                    );
+                    super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
+                } catch (Exception e) {
+                    throw new PGPDecryptException();
+                }
             }
         }
         super.doOpen();

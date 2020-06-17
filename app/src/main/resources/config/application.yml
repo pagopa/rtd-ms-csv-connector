@@ -10,6 +10,7 @@ spring:
       enabled: false
     initialize-schema: ${RTD_BATCH_INITIALIZE_SCHEMA:always}
   main:
+    web-application-type: none
     allow-bean-definition-overriding: true
 
 info:

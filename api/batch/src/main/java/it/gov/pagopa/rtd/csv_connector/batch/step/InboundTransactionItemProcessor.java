@@ -3,6 +3,7 @@ package it.gov.pagopa.rtd.csv_connector.batch.step;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.TransactionMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
@@ -18,10 +19,12 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 @Slf4j
+@Data
 @Component
 public class InboundTransactionItemProcessor implements ItemProcessor<InboundTransaction, Transaction> {
 
     private final TransactionMapper mapper;
+    private Boolean applyHashing;
 
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
@@ -41,7 +44,7 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
             throw new ConstraintViolationException(constraintViolations);
         }
 
-        Transaction transaction = mapper.map(inboundTransaction);
+        Transaction transaction = mapper.map(inboundTransaction, applyHashing);
 
         return transaction;
 

@@ -84,6 +84,8 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
                 "classpath:config/testCsvTransactionPublisher.properties",
         },
         properties = {
+                "batchConfiguration.CsvTransactionReaderBatch.applyHashing=true",
+                "batchConfiguration.CsvTransactionReaderBatch.applyDecrypt=true",
                 "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",
                 "batchConfiguration.CsvTransactionReaderBatch.passphrase=test",
                 "batchConfiguration.CsvTransactionReaderBatch.skipLimit=3",

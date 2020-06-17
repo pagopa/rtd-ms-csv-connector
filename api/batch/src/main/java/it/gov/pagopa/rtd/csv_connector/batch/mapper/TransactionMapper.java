@@ -19,14 +19,17 @@ public class TransactionMapper {
      *              instance of an  {@link InboundTransaction}, to be mapped into a {@link Transaction}
      * @return  {@link Transaction} instance from the input inboundTransaction, normalized and with an hashed PAN
      */
-    public Transaction map(InboundTransaction inboundTransaction) {
+    public Transaction map(InboundTransaction inboundTransaction, Boolean applyHashing) {
 
         Transaction transaction = null;
 
         if (inboundTransaction != null) {
             transaction = Transaction.builder().build();
             BeanUtils.copyProperties(inboundTransaction, transaction, "hpan");
-            transaction.setHpan(DigestUtils.sha256Hex(inboundTransaction.getPan()));
+            transaction.setHpan(applyHashing ?
+                    DigestUtils.sha256Hex(inboundTransaction.getPan()) :
+                    inboundTransaction.getPan()
+            );
         }
 
         return transaction;

@@ -81,6 +81,10 @@ public class CsvTransactionReaderBatch {
     private String secretKeyPath;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.passphrase}")
     private String passphrase;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.applyHashing}")
+    private Boolean applyHashing;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.applyDecrypt}")
+    private Boolean applyDecrypt;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.partitionerSize}")
     private Integer partitionerSize;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.chunkSize}")
@@ -215,7 +219,7 @@ public class CsvTransactionReaderBatch {
     @StepScope
     public FlatFileItemReader<InboundTransaction> transactionItemReader(
             @Value("#{stepExecutionContext['fileName']}") String file) {
-        PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(secretKeyPath, passphrase);
+        PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(secretKeyPath, passphrase, applyDecrypt);
         flatFileItemReader.setResource(new UrlResource(file));
         flatFileItemReader.setLineMapper(transactionLineMapper());
         flatFileItemReader.setLinesToSkip(linesToSkip);
@@ -229,7 +233,10 @@ public class CsvTransactionReaderBatch {
     @Bean
     @StepScope
     public ItemProcessor<InboundTransaction, Transaction> transactionItemProcessor() {
-        return beanFactory.getBean(InboundTransactionItemProcessor.class);
+        InboundTransactionItemProcessor inboundTransactionItemProcessor =
+                beanFactory.getBean(InboundTransactionItemProcessor.class);
+        inboundTransactionItemProcessor.setApplyHashing(applyHashing);
+        return inboundTransactionItemProcessor;
     }
 
     /**

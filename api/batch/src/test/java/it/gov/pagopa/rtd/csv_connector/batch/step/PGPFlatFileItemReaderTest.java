@@ -75,11 +75,36 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
                 false,false);
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
                 "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
-                        "/secretKey.asc", "test");
+                        "/secretKey.asc", "test", true);
 
         textTrxPgpFOS.close();
 
         flatFileItemReader.setResource(new UrlResource(tempFolder.getRoot().toURI() + "test-trx.pgp"));
+        flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
+        ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
+        flatFileItemReader.update(executionContext);
+        flatFileItemReader.open(executionContext);
+        Assert.assertNotNull(flatFileItemReader.read());
+        exceptionRule.expect(FlatFileParseException.class);
+        flatFileItemReader.read();
+        Assert.assertNotNull(flatFileItemReader.read());
+        flatFileItemReader.update(executionContext);
+        Assert.assertEquals(3, executionContext
+                .getInt(ClassUtils.getShortName(FlatFileItemReader.class) + ".read.count"));
+    }
+
+    @SneakyThrows
+    @Test
+    public void testReader_Ok_NoDecrypt() {
+
+
+        PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
+                "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
+                        "/secretKey.asc", "test", false);
+
+        flatFileItemReader.setResource(new UrlResource("file:"+
+                this.getClass().getResource("/test-encrypt")
+                .getFile() + "/test-trx.csv"));
         flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
         ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
         flatFileItemReader.update(executionContext);
@@ -111,7 +136,7 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
 
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(
                 "file:/"+this.getClass().getResource("/test-encrypt").getFile() +
-                        "/secretKey.asc", "test");
+                        "/secretKey.asc", "test", true);
         flatFileItemReader.setResource(new UrlResource(tempFolder.getRoot().toURI() + "test-trx.pgp"));
         flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
         ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
