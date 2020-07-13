@@ -61,7 +61,16 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
         for (StepExecution stepExecution : stepExecutions) {
             if (stepExecution.getExecutionContext().containsKey("fileName")) {
                 String file = stepExecution.getExecutionContext().getString("fileName");
-                String path = file.replace("file:/", "");
+                String path = null;
+
+                try {
+                    path = resolver.getResource(file).getFile().getAbsolutePath();
+                } catch (Exception e) {
+                    if (log.isErrorEnabled()) {
+                        log.error(e.getMessage(),e);
+                    }
+                    path = file.replace("file:/", "");
+                }
 
                 try {
 
