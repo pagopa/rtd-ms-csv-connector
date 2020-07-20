@@ -4,6 +4,7 @@ import eu.sia.meda.event.transformer.SimpleEventRequestTransformer;
 import eu.sia.meda.event.transformer.SimpleEventResponseTransformer;
 import it.gov.pagopa.rtd.csv_connector.CsvTransactionPublisherConnector;
 import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,10 +35,13 @@ class CsvTransactionPublisherServiceImpl implements CsvTransactionPublisherServi
      * @param transaction
      *              {@link Transaction} instance to be published
      */
+    @SneakyThrows
     @Override
     public void publishTransactionEvent(Transaction transaction) {
-        csvTransactionPublisherConnector.doCall(
-                transaction, simpleEventRequestTransformer, simpleEventResponseTransformer);
+        if (!csvTransactionPublisherConnector.doCall(
+                transaction, simpleEventRequestTransformer, simpleEventResponseTransformer)) {
+            throw new Exception("Error on event publishing");
+        };
     }
 
 }

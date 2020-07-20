@@ -42,7 +42,8 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
         delimitedLineTokenizer.setDelimiter(";");
         delimitedLineTokenizer.setNames(
                 "codice_acquirer", "tipo_operazione", "tipo_circuito", "PAN", "timestamp", "id_trx_acquirer",
-                "id_trx_issuer", "correlation_id", "importo", "currency", "acquirerID", "merchantID", "MCC");
+                "id_trx_issuer", "correlation_id", "importo", "currency", "acquirerID", "merchantID", "terminal_id",
+                "bank_identification_number", "MCC");
         return delimitedLineTokenizer;
     }
 

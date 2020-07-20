@@ -101,6 +101,8 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                 .amountCurrency("833")
                 .correlationId("1")
                 .acquirerId("0")
+                .terminalId("0")
+                .bin("000000")
                 .build();
     }
 

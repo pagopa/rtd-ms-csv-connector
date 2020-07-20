@@ -3,6 +3,10 @@ package it.gov.pagopa.rtd.csv_connector.model;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -43,5 +47,9 @@ public class Transaction {
     String acquirerId;
 
     String merchantId;
+
+    String terminalId;
+
+    String bin;
 
 }
