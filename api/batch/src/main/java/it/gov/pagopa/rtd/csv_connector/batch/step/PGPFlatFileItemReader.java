@@ -5,6 +5,7 @@ import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptExce
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -21,6 +22,7 @@ import java.io.FileInputStream;
  */
 
 @RequiredArgsConstructor
+@Slf4j
 public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction> {
 
     private final String secretFilePath;
@@ -50,7 +52,7 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Resource secretKeyResource = resolver.getResource(secretFilePath);
             try (FileInputStream fileToProcessIS = new FileInputStream(fileToProcess);
-                 FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile())) {
+                FileInputStream secretFilePathIS = new FileInputStream(secretKeyResource.getFile())) {
                 try {
                     byte[] decryptFileData = PGPDecryptUtil.decryptFile(
                             fileToProcessIS,
@@ -59,7 +61,10 @@ public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction
                     );
                     super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
                 } catch (Exception e) {
-                    throw new PGPDecryptException();
+                    if (log.isErrorEnabled()) {
+                        log.error(e.getMessage(),e);
+                    }
+                    throw new PGPDecryptException(e.getMessage(),e);
                 }
             }
         }
