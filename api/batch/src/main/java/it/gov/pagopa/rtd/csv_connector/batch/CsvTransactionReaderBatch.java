@@ -1,6 +1,10 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemProcessListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemReaderListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionReaderStepListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.batch.step.ArchivalTasklet;
@@ -37,6 +41,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.task.TaskExecutor;
@@ -50,6 +55,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.io.FileNotFoundException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -105,16 +112,24 @@ public class CsvTransactionReaderBatch {
     private String timestampPattern;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.tablePrefix}")
     private String tablePrefix;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.errorLogsPath}")
+    private String errorLogsPath;
 
     private DataSource dataSource;
 
     /**
-     * Scheduled method used to launch the configured batch job for processing transaction from a defined directory.
+     * ScheduTransactionItemProcessListener
+     * TransactionItemReaderListener
+     * TransactionItemWriterListener
+     * TransactionReaderStepListenered method used to launch the configured batch job for processing transaction from a defined directory.
      * The scheduler is based on a cron execution, based on the provided configuration
      * @throws Exception
      */
     @Scheduled(cron = "${batchConfiguration.CsvTransactionReaderBatch.cron}")
     public void launchJob() throws Exception {
+
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] transactionResources = resolver.getResources(directoryPath);
 
         Date startDate = new Date();
         if (log.isInfoEnabled()) {
@@ -311,6 +326,8 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     public Step workerStep() throws Exception {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+        String executionDate = OffsetDateTime.now().format(fmt);
         return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
                 .reader(transactionItemReader(null))
                 .processor(transactionItemProcessor())
@@ -320,8 +337,41 @@ public class CsvTransactionReaderBatch {
                 .noSkip(PGPDecryptException.class)
                 .noSkip(FileNotFoundException.class)
                 .skip(Exception.class)
+                .listener(transactionItemReaderListener(executionDate))
+                .listener(transactionsItemProcessListener(executionDate))
+                .listener(transactionsItemWriteListener(executionDate))
+                .listener(transactionStepListener())
                 .taskExecutor(readerTaskExecutor())
                 .build();
+    }
+
+    @Bean
+    public TransactionReaderStepListener transactionStepListener() {
+        return new TransactionReaderStepListener();
+    }
+
+    @Bean
+    public TransactionItemReaderListener transactionItemReaderListener(String executionDate) {
+        TransactionItemReaderListener transactionsSkipListener = new TransactionItemReaderListener();
+        transactionsSkipListener.setExecutionDate(executionDate);
+        transactionsSkipListener.setErrorTransactionsLogsPath(errorLogsPath);
+        return transactionsSkipListener;
+    }
+
+    @Bean
+    public TransactionItemWriterListener transactionsItemWriteListener(String executionDate) {
+        TransactionItemWriterListener transactionsItemWriteListener = new TransactionItemWriterListener();
+        transactionsItemWriteListener.setExecutionDate(executionDate);
+        transactionsItemWriteListener.setErrorTransactionsLogsPath(errorLogsPath);
+        return transactionsItemWriteListener;
+    }
+
+    @Bean
+    public TransactionItemProcessListener transactionsItemProcessListener(String executionDate) {
+        TransactionItemProcessListener transactionItemProcessListener = new TransactionItemProcessListener();
+        transactionItemProcessListener.setExecutionDate(executionDate);
+        transactionItemProcessListener.setErrorTransactionsLogsPath(errorLogsPath);
+        return transactionItemProcessListener;
     }
 
     /**

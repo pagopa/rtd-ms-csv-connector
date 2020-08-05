@@ -23,7 +23,7 @@ import java.io.FileInputStream;
 
 @RequiredArgsConstructor
 @Slf4j
-public class PGPFlatFileItemReader extends FlatFileItemReader<InboundTransaction> {
+public class PGPFlatFileItemReader extends TransactionFlatFileItemReader {
 
     private final String secretFilePath;
     private final String passphrase;
