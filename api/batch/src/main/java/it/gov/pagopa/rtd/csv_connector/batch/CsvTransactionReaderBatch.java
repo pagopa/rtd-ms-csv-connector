@@ -6,6 +6,7 @@ import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemReaderListe
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListener;
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionReaderStepListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
+import it.gov.pagopa.rtd.csv_connector.batch.mapper.LineAwareMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.batch.step.ArchivalTasklet;
 import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
@@ -218,8 +219,8 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     public LineMapper<InboundTransaction> transactionLineMapper() {
-        DefaultLineMapper<InboundTransaction> lineMapper = new DefaultLineMapper<>();
-        lineMapper.setLineTokenizer(transactionLineTokenizer());
+        LineAwareMapper lineMapper = new LineAwareMapper();
+        lineMapper.setTokenizer(transactionLineTokenizer());
         lineMapper.setFieldSetMapper(transactionFieldSetMapper());
         return lineMapper;
     }

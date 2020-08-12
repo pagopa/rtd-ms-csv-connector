@@ -22,6 +22,7 @@ import java.time.OffsetDateTime;
 public class InboundTransaction {
 
     @NotNull
+    @NotBlank
     String idTrxAcquirer;
 
     @NotNull
@@ -50,6 +51,7 @@ public class InboundTransaction {
     String circuitType;
 
     @NotNull
+    @NotBlank
     String idTrxIssuer;
 
     String correlationId;

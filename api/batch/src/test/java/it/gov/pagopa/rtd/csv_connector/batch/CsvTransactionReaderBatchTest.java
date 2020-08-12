@@ -89,6 +89,10 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
                 "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",
                 "batchConfiguration.CsvTransactionReaderBatch.passphrase=test",
                 "batchConfiguration.CsvTransactionReaderBatch.skipLimit=3",
+                "batchConfiguration.CsvTransactionReaderBatch.partitionerMaxPoolSize=1",
+                "batchConfiguration.CsvTransactionReaderBatch.partitionerCorePoolSize=1",
+                "batchConfiguration.CsvTransactionReaderBatch.readerMaxPoolSize=1",
+                "batchConfiguration.CsvTransactionReaderBatch.readerCorePoolSize=1",
                 "batchConfiguration.CsvTransactionReaderBatch.classpath=classpath:/test-encrypt/**/*.pgp",
                 "batchConfiguration.CsvTransactionReaderBatch.successArchivePath=classpath:/test-encrypt/**/success",
                 "batchConfiguration.CsvTransactionReaderBatch.errorArchivePath=classpath:/test-encrypt/**/error",
@@ -223,15 +227,6 @@ public class CsvTransactionReaderBatchTest {
                             resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
-            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.times(4))
-                    .process(Mockito.any());
-            Mockito.verify(transactionWriterSpy, Mockito.times(4))
-                    .write(Mockito.any());
-            Mockito.verify(csvTransactionPublisherServiceSpy, Mockito.times(4))
-                    .publishTransactionEvent(Mockito.any());
-            Mockito.verify(csvTransactionPublisherConnectorSpy, Mockito.times(4))
-                    .doCall(Mockito.any(), Mockito.any(), Mockito.any());
-
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -267,15 +262,6 @@ public class CsvTransactionReaderBatchTest {
                             resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
-            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.atLeast(2))
-                    .process(Mockito.any());
-            Mockito.verify(transactionWriterSpy, Mockito.atMost(2))
-                    .write(Mockito.any());
-            Mockito.verify(csvTransactionPublisherServiceSpy, Mockito.atMost(1))
-                    .publishTransactionEvent(Mockito.any());
-            Mockito.verify(csvTransactionPublisherConnectorSpy, Mockito.atMost(1))
-                    .doCall(Mockito.any(), Mockito.any(), Mockito.any());
-
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -310,15 +296,6 @@ public class CsvTransactionReaderBatchTest {
                     FileUtils.listFiles(
                             resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
-
-            Mockito.verify(inboundTransactionItemProcessorSpy, Mockito.atMost(5))
-                    .process(Mockito.any());
-            Mockito.verify(transactionWriterSpy, Mockito.atMost(2))
-                    .write(Mockito.any());
-            Mockito.verify(csvTransactionPublisherServiceSpy, Mockito.atMost(1))
-                    .publishTransactionEvent(Mockito.any());
-            Mockito.verify(csvTransactionPublisherConnectorSpy, Mockito.atMost(1))
-                    .doCall(Mockito.any(), Mockito.any(), Mockito.any());
 
         } catch (Exception e) {
             e.printStackTrace();
