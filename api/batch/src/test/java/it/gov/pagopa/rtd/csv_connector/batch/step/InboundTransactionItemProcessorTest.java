@@ -3,7 +3,7 @@ package it.gov.pagopa.rtd.csv_connector.batch.step;
 import eu.sia.meda.BaseTest;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.TransactionMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package it.gov.pagopa.rtd.csv_connector.model;
+package it.gov.pagopa.rtd.csv_connector.integration.event.model;
 
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;

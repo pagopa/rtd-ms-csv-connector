@@ -2,8 +2,8 @@ package it.gov.pagopa.rtd.csv_connector.service;
 
 import eu.sia.meda.event.transformer.SimpleEventRequestTransformer;
 import eu.sia.meda.event.transformer.SimpleEventResponseTransformer;
-import it.gov.pagopa.rtd.csv_connector.CsvTransactionPublisherConnector;
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

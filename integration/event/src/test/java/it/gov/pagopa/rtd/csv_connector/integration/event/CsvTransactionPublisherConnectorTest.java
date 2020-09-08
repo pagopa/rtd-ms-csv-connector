@@ -1,8 +1,9 @@
-package it.gov.pagopa.rtd.csv_connector;
+package it.gov.pagopa.rtd.csv_connector.integration.event;
 
 import eu.sia.meda.event.BaseEventConnectorTest;
 import eu.sia.meda.util.TestUtils;
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;

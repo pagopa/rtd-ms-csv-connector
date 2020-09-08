@@ -1,9 +1,9 @@
-package it.gov.pagopa.rtd.csv_connector;
+package it.gov.pagopa.rtd.csv_connector.integration.event;
 
 import eu.sia.meda.event.BaseEventConnector;
 import eu.sia.meda.event.transformer.IEventRequestTransformer;
 import eu.sia.meda.event.transformer.IEventResponseTransformer;
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import org.springframework.stereotype.Service;
 
 /**

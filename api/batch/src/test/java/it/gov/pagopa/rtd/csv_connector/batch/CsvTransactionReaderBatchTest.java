@@ -5,7 +5,7 @@ import eu.sia.meda.core.properties.PropertiesManager;
 import eu.sia.meda.event.configuration.ArchEventConfigurationService;
 import eu.sia.meda.event.transformer.SimpleEventRequestTransformer;
 import eu.sia.meda.event.transformer.SimpleEventResponseTransformer;
-import it.gov.pagopa.rtd.csv_connector.CsvTransactionPublisherConnector;
+import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
 import it.gov.pagopa.rtd.csv_connector.batch.config.TestConfig;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
 import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;

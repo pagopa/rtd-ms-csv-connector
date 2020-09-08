@@ -1,7 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.batch.mapper;
 
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
 import eu.sia.meda.BaseTest;
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import lombok.SneakyThrows;
 import org.junit.Assert;

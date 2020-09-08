@@ -1,6 +1,6 @@
-package it.gov.pagopa.rtd.csv_connector.config;
+package it.gov.pagopa.rtd.csv_connector.integration.event.config;
 
-import it.gov.pagopa.rtd.csv_connector.CsvTransactionPublisherConnector;
+import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 

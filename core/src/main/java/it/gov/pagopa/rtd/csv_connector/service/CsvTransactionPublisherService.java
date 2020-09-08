@@ -1,6 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.service;
 
-import it.gov.pagopa.rtd.csv_connector.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 
 /**
  * Interface for the event publisher service, responsible for handling the transactions
