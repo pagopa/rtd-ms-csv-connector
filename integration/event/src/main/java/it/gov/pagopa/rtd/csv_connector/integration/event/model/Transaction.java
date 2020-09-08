@@ -25,8 +25,7 @@ public class Transaction {
 
     String acquirerCode;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    OffsetDateTime trxDate;
+    String trxDate;
 
     String hpan;
 

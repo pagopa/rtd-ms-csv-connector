@@ -6,6 +6,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
  * Class to be used to map a {@link Transaction} from an {@link InboundTransaction}
  */
@@ -25,11 +28,13 @@ public class TransactionMapper {
 
         if (inboundTransaction != null) {
             transaction = Transaction.builder().build();
-            BeanUtils.copyProperties(inboundTransaction, transaction, "hpan");
+            BeanUtils.copyProperties(inboundTransaction, transaction, "hpan", "amount");
             transaction.setHpan(applyHashing ?
                     DigestUtils.sha256Hex(inboundTransaction.getPan()) :
                     inboundTransaction.getPan()
             );
+            transaction.setAmount(BigDecimal.valueOf(inboundTransaction.getAmount())
+                    .divide(BigDecimal.valueOf(100L), RoundingMode.HALF_EVEN));
         }
 
         return transaction;

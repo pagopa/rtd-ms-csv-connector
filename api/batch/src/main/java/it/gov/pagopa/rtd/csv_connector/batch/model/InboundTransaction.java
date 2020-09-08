@@ -30,9 +30,9 @@ public class InboundTransaction {
     @Size(max = 20)
     String acquirerCode;
 
+    @NotBlank
     @NotNull
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    OffsetDateTime trxDate;
+    String trxDate;
 
     @NotNull
     @NotBlank
@@ -57,7 +57,7 @@ public class InboundTransaction {
     String correlationId;
 
     @NotNull
-    BigDecimal amount;
+    Long amount;
 
     @Size(max = 3)
     String amountCurrency;
