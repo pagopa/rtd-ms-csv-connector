@@ -132,9 +132,8 @@ public class CsvTransactionReaderBatch {
         Resource[] transactionResources = resolver.getResources(directoryPath);
 
         Date startDate = new Date();
-        if (log.isInfoEnabled()) {
-            log.info("CsvTransactionReader scheduled job started at " + startDate);
-        }
+        log.info("CsvTransactionReader scheduled job started at {}", startDate);
+
 
         JobExecution jobExecution = transactionJobLauncher().run(
                 job(), new JobParametersBuilder()
@@ -143,10 +142,9 @@ public class CsvTransactionReaderBatch {
         batchRunCounter.incrementAndGet();
 
         Date endDate = new Date();
-        if (log.isInfoEnabled()) {
-            log.info("CsvTransactionReader scheduled job ended at " + endDate);
-            log.info("Completed in: " + (endDate.getTime() - startDate.getTime()) + " (ms)");
-        }
+
+        log.info("CsvTransactionReader scheduled job ended at {}" , endDate);
+        log.info("Completed in: {} (ms)", + (endDate.getTime() - startDate.getTime()));
 
     }
 

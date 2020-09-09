@@ -61,9 +61,7 @@ public class PGPFlatFileItemReader extends TransactionFlatFileItemReader {
                     );
                     super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
                 } catch (Exception e) {
-                    if (log.isErrorEnabled()) {
-                        log.error(e.getMessage(),e);
-                    }
+                    log.error(e.getMessage(),e);
                     throw new PGPDecryptException(e.getMessage(),e);
                 }
             }

@@ -66,9 +66,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                 try {
                     path = resolver.getResource(file).getFile().getAbsolutePath();
                 } catch (Exception e) {
-                    if (log.isErrorEnabled()) {
-                        log.error(e.getMessage(),e);
-                    }
+                    log.error(e.getMessage(),e);
                     path = file.replace("file:/", "");
                 }
 
@@ -92,9 +90,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                     FileUtils.moveFile(FileUtils.getFile(path), destFile);
 
                 } catch (Exception e) {
-                    if (log.isErrorEnabled()) {
-                        log.error(e.getMessage(), e);
-                    }
+                    log.error(e.getMessage(), e);
                 }
             }
         }

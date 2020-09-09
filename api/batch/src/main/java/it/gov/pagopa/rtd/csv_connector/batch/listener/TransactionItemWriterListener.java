@@ -11,6 +11,11 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.List;
 
+/**
+ * Implementation of {@link ItemWriteListener}, to be used to log and/or store records
+ * that have produced an error while reading a record writing phase
+ */
+
 @Slf4j
 @Data
 public class TransactionItemWriterListener implements ItemWriteListener<InboundTransaction> {
@@ -20,16 +25,14 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeWrite(List<? extends InboundTransaction> list) {
-
-    }
+    public void beforeWrite(List<? extends InboundTransaction> list) {}
 
     public void afterWrite(List<? extends InboundTransaction> inboundTransactions) {
         if (log.isDebugEnabled()) {
             inboundTransactions.forEach(inboundTransaction -> {
-                log.debug("Transaction record from filename: "
-                        + inboundTransaction.getFilename() + " ,line: "
-                        + inboundTransaction.getLineNumber() +" written");
+                log.debug("Transaction record from filename: {}, line: {} written",
+                        inboundTransaction.getFilename(),
+                        inboundTransaction.getLineNumber());
             });
         }
     }
@@ -38,12 +41,11 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
 
         inboundTransactions.forEach(inboundTransaction -> {
 
-            if (log.isInfoEnabled()) {
-                log.info("Error during during transaction record writing - " + throwable.getMessage() + ", filename: "
-                        + inboundTransaction.getFilename() + ",line: " + inboundTransaction.getLineNumber());
-            }
+            log.info("Error during during transaction record writing - {},filename: {},line: {}" ,
+                    throwable.getMessage() , inboundTransaction.getFilename() ,inboundTransaction.getLineNumber());
 
             try {
+
                 File file = new File(
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                                 .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
@@ -51,9 +53,7 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
                         file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
 
             } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                    log.error(e.getMessage(), e);
-                }
+                log.error(e.getMessage(), e);
             }
 
         });

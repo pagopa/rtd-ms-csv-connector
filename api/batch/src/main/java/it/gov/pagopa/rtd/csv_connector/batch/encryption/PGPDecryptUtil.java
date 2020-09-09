@@ -120,13 +120,9 @@ public class PGPDecryptUtil {
             }
 
         } catch (PGPException e) {
-            if (log.isErrorEnabled()) {
-                log.error(e.getMessage(), e);
-            }
+            log.error(e.getMessage(), e);
             if (e.getUnderlyingException() != null) {
-                if (log.isErrorEnabled()) {
-                    log.error(e.getUnderlyingException().getMessage(), e.getUnderlyingException());
-                }
+                log.error(e.getUnderlyingException().getMessage(), e.getUnderlyingException());
             }
             throw e;
 
@@ -226,13 +222,9 @@ public class PGPDecryptUtil {
                 out.close();
             }
         } catch (PGPException e) {
-            if (log.isErrorEnabled()) {
-                log.error(e.getMessage(), e);
-            }
+            log.error(e.getMessage(), e);
             if (e.getUnderlyingException() != null) {
-                if (log.isErrorEnabled()) {
-                    log.error(e.getUnderlyingException().getMessage(), e.getUnderlyingException());
-                }
+                log.error(e.getUnderlyingException().getMessage(), e.getUnderlyingException());
             }
         }
     }

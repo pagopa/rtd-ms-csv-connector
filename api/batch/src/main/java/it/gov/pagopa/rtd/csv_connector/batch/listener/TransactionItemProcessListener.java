@@ -11,6 +11,10 @@ import org.springframework.lang.Nullable;
 import java.io.File;
 import java.nio.charset.Charset;
 
+/**
+ * Implementation of {@link ItemProcessListener}, to be used to log and/or store records
+ * filtered or that have produced an error during a record processing phase
+ */
 @Slf4j
 @Data
 public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction,InboundTransaction> {
@@ -28,44 +32,37 @@ public class TransactionItemProcessListener implements ItemProcessListener<Inbou
 
         if (result == null) {
 
-            if (log.isInfoEnabled()) {
-                    log.info("Filtered transaction record on filename: "
-                            + item.getFilename() + " ,line: " +
-                            item.getLineNumber());
-            }
+            log.info("Filtered transaction record on filename: {}, line: {}",
+                    item.getFilename(), item.getLineNumber());
 
             try {
                 File file = new File(
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                                 .concat("/".concat(executionDate)) + "_transactionsFilteredRecords.csv");
-                FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset());
+                FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
             } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                    log.error(e.getMessage(), e);
-                }
+                log.error(e.getMessage(), e);
             }
 
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Processed transaction record on filename: " + item.getFilename() + " ,line: " +
-                        item.getLineNumber());
-            }
+            log.debug("Processed transaction record on filename: {}, line: {}",
+                    item.getFilename(),item.getLineNumber());
         }
 
     }
 
     public void onProcessError(InboundTransaction item, Exception throwable) {
 
-        if (log.isInfoEnabled()) {
-                log.info("Error during during transaction processing, filename: " +
-                        item.getFilename() + ",line: " + item.getLineNumber());
-        }
+        log.info("Error during during transaction processing, filename: {},line: {}",
+                item.getFilename(), item.getLineNumber());
 
         try {
+
             File file = new File(
                     resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                             .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
             FileUtils.writeStringToFile(file,buildCsv(item) , Charset.defaultCharset(), true);
+
         } catch (Exception e) {
             log.error(e.getMessage(),e);
         }
