@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 
@@ -32,6 +33,9 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
         Mockito.reset(mapperSpy);
         this.inboundTransactionItemProcessor = new InboundTransactionItemProcessor(mapperSpy);
     }
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void processValidInboundTransaction() {
@@ -67,6 +71,56 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
             Assert.fail();
         }
 
+    }
+
+    @Test
+    public void process_OK_validForReturn() {
+        try {
+
+            InboundTransaction inboundTransaction = getInboundTransaction();
+            inboundTransaction.setOperationType("01");
+            inboundTransaction.setIdTrxIssuer("");
+            this.inboundTransactionItemProcessor.setApplyHashing(false);
+
+            Transaction transaction = inboundTransactionItemProcessor.process(inboundTransaction);
+            Assert.assertNotNull(transaction);
+            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
+            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
+            inboundTransaction = getInboundTransaction();
+            inboundTransaction.setOperationType("01");
+            inboundTransaction.setIdTrxIssuer(null);
+            transaction = inboundTransactionItemProcessor.process(inboundTransaction);
+            Assert.assertNotNull(transaction);
+            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
+            Mockito.verify(mapperSpy, Mockito.times(2)).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
+
+        } catch (Exception e) {
+            Assert.fail();
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void process_KO_InvalidForGeneral() {
+        try {
+
+            InboundTransaction inboundTransaction = getInboundTransaction();
+            inboundTransaction.setOperationType("00");
+            inboundTransaction.setIdTrxIssuer("");
+            expectedException.expect(AssertionError.class);
+            inboundTransactionItemProcessor.process(inboundTransaction);
+
+            inboundTransaction = getInboundTransaction();
+            inboundTransaction.setOperationType("00");
+            inboundTransaction.setIdTrxIssuer(null);
+            expectedException.expect(AssertionError.class);
+            inboundTransactionItemProcessor.process(inboundTransaction);
+
+
+        } catch (Exception e) {
+            Assert.fail();
+            e.printStackTrace();
+        }
     }
 
     @Rule
