@@ -40,10 +40,7 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
     public Transaction process(InboundTransaction inboundTransaction) {
 
         Set<ConstraintViolation<InboundTransaction>> constraintViolations = validator.validate(inboundTransaction);
-        if (constraintViolations.size() > 0 ||
-                (!inboundTransaction.getOperationType().equals("01") &&
-                (inboundTransaction.getIdTrxIssuer() == null ||
-                inboundTransaction.getIdTrxIssuer().isEmpty()))) {
+        if (constraintViolations.size() > 0) {
             throw new ConstraintViolationException(constraintViolations);
         }
 

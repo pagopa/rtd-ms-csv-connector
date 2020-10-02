@@ -100,29 +100,6 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
         }
     }
 
-    @Test
-    public void process_KO_InvalidForGeneral() {
-        try {
-
-            InboundTransaction inboundTransaction = getInboundTransaction();
-            inboundTransaction.setOperationType("00");
-            inboundTransaction.setIdTrxIssuer("");
-            expectedException.expect(AssertionError.class);
-            inboundTransactionItemProcessor.process(inboundTransaction);
-
-            inboundTransaction = getInboundTransaction();
-            inboundTransaction.setOperationType("00");
-            inboundTransaction.setIdTrxIssuer(null);
-            expectedException.expect(AssertionError.class);
-            inboundTransactionItemProcessor.process(inboundTransaction);
-
-
-        } catch (Exception e) {
-            Assert.fail();
-            e.printStackTrace();
-        }
-    }
-
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
 
