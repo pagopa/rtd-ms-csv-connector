@@ -47,6 +47,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                     process(inboundTransaction);
             Assert.assertNotNull(transaction);
             Assert.assertEquals(transaction.getHpan(), DigestUtils.sha256Hex(inboundTransaction.getPan()));
+            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
             Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(true));
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,6 +66,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                     process(inboundTransaction);
             Assert.assertNotNull(transaction);
             Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
+            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
             Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,7 +93,8 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
             inboundTransaction.setIdTrxIssuer(null);
             transaction = inboundTransactionItemProcessor.process(inboundTransaction);
             Assert.assertNotNull(transaction);
-            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
+            Assert.assertEquals(inboundTransaction.getPan(),transaction.getHpan());
+            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
             Mockito.verify(mapperSpy, Mockito.times(2)).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
 
         } catch (Exception e) {
@@ -122,7 +125,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                 .idTrxAcquirer("1")
                 .acquirerCode("001")
                 .trxDate("2020-04-09T16:22:45.304Z")
-                .amount(1000L)
+                .amount(1050L)
                 .operationType("00")
                 .pan("hpan")
                 .merchantId("0")
