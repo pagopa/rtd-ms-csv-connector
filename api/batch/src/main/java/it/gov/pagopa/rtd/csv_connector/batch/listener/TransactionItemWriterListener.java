@@ -1,12 +1,11 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
-import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -18,32 +17,65 @@ import java.util.List;
 
 @Slf4j
 @Data
-public class TransactionItemWriterListener implements ItemWriteListener<InboundTransaction> {
+public class TransactionItemWriterListener implements ItemWriteListener<Transaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
+    private Boolean enableOnErrorLogging;
+    private Boolean enableOnErrorFileLogging;
+    private String filename;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeWrite(List<? extends InboundTransaction> list) {}
+    public void beforeWrite(List<? extends Transaction> transactions) {}
 
-    public void afterWrite(List<? extends InboundTransaction> inboundTransactions) {
-        if (log.isDebugEnabled()) {
-            inboundTransactions.forEach(inboundTransaction -> {
-                log.debug("Transaction record from filename: {}, line: {} written",
-                        inboundTransaction.getFilename(),
-                        inboundTransaction.getLineNumber());
-            });
-        }
-    }
+    public void afterWrite(List<? extends Transaction> transactions) {}
 
-    public void onWriteError(Exception throwable, List<? extends InboundTransaction> inboundTransactions) {
+    public void onWriteError(Exception throwable, List<? extends Transaction> inboundTransactions) {
 
         inboundTransactions.forEach(inboundTransaction -> {
 
-            log.info("Error during during transaction record writing - {},filename: {},line: {}" ,
-                    throwable.getMessage() , inboundTransaction.getFilename() ,inboundTransaction.getLineNumber());
+            if (enableOnErrorLogging) {
+                log.error("Error during during transaction record writing - {}, transaction: " +
+                                "[{}, {}, {}], filename: {}",
+                        throwable.getMessage(),
+                        inboundTransaction.getAcquirerCode(),
+                        inboundTransaction.getTrxDate(),
+                        inboundTransaction.getIdTrxAcquirer(),
+                        filename);
+            }
 
+            if (enableOnErrorFileLogging) {
+                try {
+
+                    File file = new File(
+                            resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                    .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
+                    FileUtils.writeStringToFile(
+                            file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
+
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+
+        });
+
+    }
+
+    public void onWriteError(Exception throwable, Transaction inboundTransaction) {
+
+        if (enableOnErrorLogging) {
+            log.error("Error during during transaction record writing - {}, transaction: " +
+                            "[{}, {}, {}], filename: {}",
+                    throwable.getMessage(),
+                    inboundTransaction.getAcquirerCode(),
+                    inboundTransaction.getTrxDate(),
+                    inboundTransaction.getIdTrxAcquirer(),
+                    filename);
+        }
+
+        if (enableOnErrorFileLogging) {
             try {
 
                 File file = new File(
@@ -55,17 +87,15 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-
-        });
-
+        }
 
     }
 
-    private String buildCsv(InboundTransaction inboundTransaction) {
+    private String buildCsv(Transaction inboundTransaction) {
         return (inboundTransaction.getAcquirerCode() != null ? inboundTransaction.getAcquirerCode() : "").concat(";")
                 .concat(inboundTransaction.getOperationType() != null ? inboundTransaction.getOperationType() : "").concat(";")
                 .concat(inboundTransaction.getCircuitType() != null ? inboundTransaction.getCircuitType() : "").concat(";")
-                .concat(inboundTransaction.getPan() != null ? inboundTransaction.getPan() : "").concat(";")
+                .concat(inboundTransaction.getHpan() != null ? inboundTransaction.getHpan() : "").concat(";")
                 .concat(inboundTransaction.getTrxDate() != null ? inboundTransaction.getTrxDate() : "").concat(";")
                 .concat(inboundTransaction.getIdTrxAcquirer() != null ? inboundTransaction.getIdTrxAcquirer() : "").concat(";")
                 .concat(inboundTransaction.getIdTrxIssuer() != null ? inboundTransaction.getIdTrxIssuer() : "").concat(";")

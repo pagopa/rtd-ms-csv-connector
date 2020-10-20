@@ -1,13 +1,12 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
-import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemReadListener;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
 import java.io.File;
 import java.nio.charset.Charset;
 
@@ -18,24 +17,28 @@ import java.nio.charset.Charset;
 
 @Slf4j
 @Data
-public class TransactionItemReaderListener implements ItemReadListener<InboundTransaction> {
+public class TransactionItemReaderListener implements ItemReadListener<Transaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
+    private String filename;
+    private Boolean enableOnErrorLogging;
+    private Boolean enableOnErrorFileLogging;
+    private Long loggingFrequency;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
     public void beforeRead() {}
 
-    public void afterRead(InboundTransaction item) {
-        log.debug("Read transaction record on filename: {}, line: {}", item.getFilename(), item.getLineNumber());
-    }
+    public void afterRead(Transaction item) {}
 
     public void onReadError(Exception throwable) {
 
-        log.info("#### Error while reading a transaction record - {}", throwable.getMessage());
+        if (enableOnErrorLogging) {
+            log.error("Error while reading a transaction record - {}", throwable.getMessage());
+        }
 
-        if (throwable instanceof FlatFileParseException) {
+        if (enableOnErrorFileLogging && throwable instanceof FlatFileParseException) {
             FlatFileParseException flatFileParseException = (FlatFileParseException) throwable;
 
             try {
@@ -43,8 +46,8 @@ public class TransactionItemReaderListener implements ItemReadListener<InboundTr
                 resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                                  .concat("/".concat(executionDate))+ "_transactionsErrorRecords.csv");
                 String[] lineArray = flatFileParseException.getInput().split("_",2);
-                FileUtils.writeStringToFile(file, (lineArray.length > 1 ?
-                                lineArray[1] : lineArray[0]).concat("\n"),
+                FileUtils.writeStringToFile(
+                        file, (lineArray.length > 1 ? lineArray[1] : lineArray[0]).concat("\n"),
                         Charset.defaultCharset(), true);
             } catch (Exception e) {
                 log.error(e.getMessage(),e);

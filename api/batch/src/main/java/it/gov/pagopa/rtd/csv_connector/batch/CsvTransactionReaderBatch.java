@@ -8,11 +8,9 @@ import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionReaderStepListe
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.LineAwareMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
-import it.gov.pagopa.rtd.csv_connector.batch.step.ArchivalTasklet;
-import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
-import it.gov.pagopa.rtd.csv_connector.batch.step.PGPFlatFileItemReader;
-import it.gov.pagopa.rtd.csv_connector.batch.step.TransactionWriter;
+import it.gov.pagopa.rtd.csv_connector.batch.step.*;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.service.WriterTrackerService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +26,7 @@ import org.springframework.batch.core.partition.support.MultiResourcePartitioner
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
+import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -114,8 +113,35 @@ public class CsvTransactionReaderBatch {
     private String tablePrefix;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.errorLogsPath}")
     private String errorLogsPath;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableOnReadErrorFileLogging}")
+    private Boolean enableOnReadErrorFileLogging;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableOnReadErrorLogging}")
+    private Boolean enableOnReadErrorLogging;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableOnProcessErrorFileLogging}")
+    private Boolean enableOnProcessErrorFileLogging;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableOnProcessErrorLogging}")
+    private Boolean enableOnProcessErrorLogging;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableOnWriteErrorFileLogging}")
+    private Boolean enableOnWriteErrorFileLogging;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableOnWriteErrorLogging}")
+    private Boolean enableOnWriteErrorLogging;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.executorPoolSize}")
+    private Integer executorPoolSize;
 
     private DataSource dataSource;
+    private WriterTrackerService writerTrackerService;
+
+    public void createWriterTrackerService() {
+        this.writerTrackerService = writerTrackerService();
+    }
+
+    public void clearWriterTrackerService() {
+        writerTrackerService.clearAll();
+    }
+
+    public WriterTrackerService writerTrackerService() {
+        return beanFactory.getBean(WriterTrackerService.class);
+    }
 
     /**
      * ScheduTransactionItemProcessListener
@@ -134,12 +160,14 @@ public class CsvTransactionReaderBatch {
         Date startDate = new Date();
         log.info("CsvTransactionReader scheduled job started at {}", startDate);
 
-
+        if (writerTrackerService == null) {
+            createWriterTrackerService();
+        }
         JobExecution jobExecution = transactionJobLauncher().run(
                 job(), new JobParametersBuilder()
                         .addDate("startDateTime", startDate)
                         .toJobParameters());
-        batchRunCounter.incrementAndGet();
+        clearWriterTrackerService();
 
         Date endDate = new Date();
 
@@ -259,9 +287,27 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     @StepScope
-    public ItemWriter<Transaction> getItemWriter() {
-        return beanFactory.getBean(TransactionWriter.class);
+    public ItemWriter<Transaction> getItemWriter(TransactionItemWriterListener writerListener) {
+        TransactionWriter transactionWriter = beanFactory.getBean(TransactionWriter.class, writerTrackerService);
+        transactionWriter.setTransactionItemWriterListener(writerListener);
+        transactionWriter.setExecutorPoolSize(executorPoolSize);
+        return transactionWriter;
     }
+
+    /**
+     *
+     * @return step instance based on the tasklet to be used for file archival at the end of the reading process
+     */
+    @SneakyThrows
+    @Bean
+    public Step terminationTask() {
+        if (writerTrackerService == null) {
+            createWriterTrackerService();
+        }
+        TerminationTasklet terminationTasklet = new TerminationTasklet(writerTrackerService);
+        return stepBuilderFactory.get("csv-success-termination-step").tasklet(terminationTasklet).build();
+    }
+
 
     /**
      *
@@ -284,7 +330,8 @@ public class CsvTransactionReaderBatch {
     public FlowJobBuilder transactionJobBuilder() {
         return jobBuilderFactory.get("csv-transaction-job")
                 .repository(getJobRepository())
-                .start(masterStep()).on("*").to(archivalTask())
+                .start(masterStep()).on("FAILED").to(archivalTask())
+                .from(masterStep()).on("*").to(terminationTask()).on("*").to(archivalTask())
                 .build();
     }
 
@@ -323,44 +370,42 @@ public class CsvTransactionReaderBatch {
      * @throws Exception
      */
     @Bean
-    public Step workerStep() throws Exception {
+    public TaskletStep workerStep() throws Exception {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String executionDate = OffsetDateTime.now().format(fmt);
+
         return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
                 .reader(transactionItemReader(null))
                 .processor(transactionItemProcessor())
-                .writer(getItemWriter())
+                .writer(getItemWriter(transactionsItemWriteListener(executionDate)))
                 .faultTolerant()
                 .skipLimit(skipLimit)
                 .noSkip(PGPDecryptException.class)
                 .noSkip(FileNotFoundException.class)
                 .skip(Exception.class)
                 .listener(transactionItemReaderListener(executionDate))
-                .listener(transactionsItemProcessListener(executionDate))
                 .listener(transactionsItemWriteListener(executionDate))
+                .listener(transactionsItemProcessListener(executionDate))
                 .listener(transactionStepListener())
                 .taskExecutor(readerTaskExecutor())
                 .build();
     }
 
     @Bean
-    public TransactionReaderStepListener transactionStepListener() {
-        return new TransactionReaderStepListener();
-    }
-
-    @Bean
     public TransactionItemReaderListener transactionItemReaderListener(String executionDate) {
-        TransactionItemReaderListener transactionsSkipListener = new TransactionItemReaderListener();
-        transactionsSkipListener.setExecutionDate(executionDate);
-        transactionsSkipListener.setErrorTransactionsLogsPath(errorLogsPath);
-        return transactionsSkipListener;
+        TransactionItemReaderListener transactionItemReaderListener = new TransactionItemReaderListener();
+        transactionItemReaderListener.setExecutionDate(executionDate);
+        transactionItemReaderListener.setEnableOnErrorFileLogging(enableOnReadErrorFileLogging);
+        transactionItemReaderListener.setEnableOnErrorLogging(enableOnReadErrorLogging);
+        return transactionItemReaderListener;
     }
 
     @Bean
     public TransactionItemWriterListener transactionsItemWriteListener(String executionDate) {
         TransactionItemWriterListener transactionsItemWriteListener = new TransactionItemWriterListener();
         transactionsItemWriteListener.setExecutionDate(executionDate);
-        transactionsItemWriteListener.setErrorTransactionsLogsPath(errorLogsPath);
+        transactionsItemWriteListener.setEnableOnErrorFileLogging(enableOnWriteErrorFileLogging);
+        transactionsItemWriteListener.setEnableOnErrorLogging(enableOnWriteErrorLogging);
         return transactionsItemWriteListener;
     }
 
@@ -368,8 +413,14 @@ public class CsvTransactionReaderBatch {
     public TransactionItemProcessListener transactionsItemProcessListener(String executionDate) {
         TransactionItemProcessListener transactionItemProcessListener = new TransactionItemProcessListener();
         transactionItemProcessListener.setExecutionDate(executionDate);
-        transactionItemProcessListener.setErrorTransactionsLogsPath(errorLogsPath);
+        transactionItemProcessListener.setEnableOnErrorFileLogging(enableOnProcessErrorFileLogging);
+        transactionItemProcessListener.setEnableOnErrorLogging(enableOnProcessErrorLogging);
         return transactionItemProcessListener;
+    }
+
+    @Bean
+    public TransactionReaderStepListener transactionStepListener() {
+        return new TransactionReaderStepListener();
     }
 
     /**

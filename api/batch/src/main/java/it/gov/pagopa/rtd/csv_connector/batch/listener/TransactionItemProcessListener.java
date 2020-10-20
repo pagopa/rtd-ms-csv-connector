@@ -1,13 +1,11 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
-import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.lang.Nullable;
-
 import java.io.File;
 import java.nio.charset.Charset;
 
@@ -17,63 +15,55 @@ import java.nio.charset.Charset;
  */
 @Slf4j
 @Data
-public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction,InboundTransaction> {
+public class TransactionItemProcessListener implements ItemProcessListener<Transaction, Transaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
+    private String filename;
+    private Boolean enableOnErrorLogging;
+    private Boolean enableOnErrorFileLogging;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeProcess(InboundTransaction inboundTransaction) {
+    public void beforeProcess(Transaction item) {
 
     }
 
-    public void afterProcess(InboundTransaction item, @Nullable InboundTransaction result) {
+    @Override
+    public void afterProcess(Transaction item, Transaction result) {
 
-        if (result == null) {
+    }
 
-            log.info("Filtered transaction record on filename: {}, line: {}",
-                    item.getFilename(), item.getLineNumber());
+    public void onProcessError(Transaction item, Exception throwable) {
 
+        if (enableOnErrorLogging) {
+            log.error("Error during during transaction record processing - {}, transaction: " +
+                            "[{}, {}, {}], filename: {}}",
+                    throwable.getMessage(),
+                    item.getAcquirerCode(),
+                    item.getTrxDate(),
+                    item.getIdTrxAcquirer(),
+                    filename);
+        }
+
+        if (enableOnErrorFileLogging) {
             try {
                 File file = new File(
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                .concat("/".concat(executionDate)) + "_transactionsFilteredRecords.csv");
+                                .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
                 FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-
-        } else {
-            log.debug("Processed transaction record on filename: {}, line: {}",
-                    item.getFilename(),item.getLineNumber());
         }
 
     }
 
-    public void onProcessError(InboundTransaction item, Exception throwable) {
-
-        log.info("Error during during transaction processing, filename: {},line: {}",
-                item.getFilename(), item.getLineNumber());
-
-        try {
-
-            File file = new File(
-                    resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                            .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
-            FileUtils.writeStringToFile(file,buildCsv(item) , Charset.defaultCharset(), true);
-
-        } catch (Exception e) {
-            log.error(e.getMessage(),e);
-        }
-
-    }
-
-    private String buildCsv(InboundTransaction inboundTransaction) {
+    private String buildCsv(Transaction inboundTransaction) {
         return (inboundTransaction.getAcquirerCode() != null ? inboundTransaction.getAcquirerCode() : "").concat(";")
                 .concat(inboundTransaction.getOperationType() != null ? inboundTransaction.getOperationType() : "").concat(";")
                 .concat(inboundTransaction.getCircuitType() != null ? inboundTransaction.getCircuitType() : "").concat(";")
-                .concat(inboundTransaction.getPan() != null ? inboundTransaction.getPan() : "").concat(";")
+                .concat(inboundTransaction.getHpan() != null ? inboundTransaction.getHpan() : "").concat(";")
                 .concat(inboundTransaction.getTrxDate() != null ? inboundTransaction.getTrxDate() : "").concat(";")
                 .concat(inboundTransaction.getIdTrxAcquirer() != null ? inboundTransaction.getIdTrxAcquirer() : "").concat(";")
                 .concat(inboundTransaction.getIdTrxIssuer() != null ? inboundTransaction.getIdTrxIssuer() : "").concat(";")
