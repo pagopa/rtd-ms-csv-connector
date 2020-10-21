@@ -7,12 +7,14 @@ import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListe
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionReaderStepListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.LineAwareMapper;
+import it.gov.pagopa.rtd.csv_connector.batch.mapper.TransactionMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.batch.step.ArchivalTasklet;
 import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
 import it.gov.pagopa.rtd.csv_connector.batch.step.PGPFlatFileItemReader;
 import it.gov.pagopa.rtd.csv_connector.batch.step.TransactionWriter;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
+import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +118,8 @@ public class CsvTransactionReaderBatch {
     private String errorLogsPath;
 
     private DataSource dataSource;
+    private final TransactionMapper transactionMapper;
+    private final CsvTransactionPublisherService csvTransactionPublisherService;
 
     /**
      * ScheduTransactionItemProcessListener
@@ -215,8 +219,8 @@ public class CsvTransactionReaderBatch {
      * @return instance of the LineMapper to be used in the itemReader configured for the job
      */
     @Bean
-    public LineMapper<InboundTransaction> transactionLineMapper() {
-        LineAwareMapper lineMapper = new LineAwareMapper();
+    public LineAwareMapper<InboundTransaction> transactionLineMapper() {
+        LineAwareMapper<InboundTransaction> lineMapper = new LineAwareMapper<>();
         lineMapper.setTokenizer(transactionLineTokenizer());
         lineMapper.setFieldSetMapper(transactionFieldSetMapper());
         return lineMapper;
@@ -231,7 +235,7 @@ public class CsvTransactionReaderBatch {
     @SneakyThrows
     @Bean
     @StepScope
-    public FlatFileItemReader<InboundTransaction> transactionItemReader(
+    public PGPFlatFileItemReader transactionItemReader(
             @Value("#{stepExecutionContext['fileName']}") String file) {
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(secretKeyPath, passphrase, applyDecrypt);
         flatFileItemReader.setResource(new UrlResource(file));
@@ -246,9 +250,8 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     @StepScope
-    public ItemProcessor<InboundTransaction, Transaction> transactionItemProcessor() {
-        InboundTransactionItemProcessor inboundTransactionItemProcessor =
-                beanFactory.getBean(InboundTransactionItemProcessor.class);
+    public InboundTransactionItemProcessor inboundTransactionItemProcessor() {
+        InboundTransactionItemProcessor inboundTransactionItemProcessor = new InboundTransactionItemProcessor(transactionMapper);
         inboundTransactionItemProcessor.setApplyHashing(applyHashing);
         return inboundTransactionItemProcessor;
     }
@@ -259,8 +262,8 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     @StepScope
-    public ItemWriter<Transaction> getItemWriter() {
-        return beanFactory.getBean(TransactionWriter.class);
+    public TransactionWriter getItemWriter() {
+        return new TransactionWriter(csvTransactionPublisherService);
     }
 
     /**
@@ -328,7 +331,7 @@ public class CsvTransactionReaderBatch {
         String executionDate = OffsetDateTime.now().format(fmt);
         return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
                 .reader(transactionItemReader(null))
-                .processor(transactionItemProcessor())
+                .processor(inboundTransactionItemProcessor())
                 .writer(getItemWriter())
                 .faultTolerant()
                 .skipLimit(skipLimit)

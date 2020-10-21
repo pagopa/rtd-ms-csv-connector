@@ -4,6 +4,7 @@ import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.NetworkException;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +29,14 @@ public class TransactionWriter implements ItemWriter<Transaction> {
      */
     @Override
     public void write(List<? extends Transaction> transactions) throws Exception {
-        transactions.forEach(csvTransactionPublisherService::publishTransactionEvent);
+        for (Transaction transaction : transactions) {
+                try {
+                    csvTransactionPublisherService.publishTransactionEvent(transaction);
+                } catch (Exception e) {
+                    log.error(e.getMessage(),e);
+                    throw new Exception();
+                }
+        }
     }
 
 }
