@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.util.Collections;
+import java.util.concurrent.Executors;
 
 /**
  * Class for unit testing of the TransactionWriter class
@@ -39,7 +40,7 @@ public class TransactionWriterTest extends BaseTest {
         transactionWriter = new TransactionWriter(
                 writerTrackerServiceMock, csvTransactionPublisherServiceMock);
         transactionWriter.setTransactionItemWriterListener(transactionItemWriterListenerMock);
-        transactionWriter.setExecutorPoolSize(1);
+        transactionWriter.setExecutor(Executors.newSingleThreadExecutor());
         BDDMockito.doNothing().when(csvTransactionPublisherServiceMock)
                 .publishTransactionEvent(Mockito.any(Transaction.class));
         BDDMockito.doNothing().when(writerTrackerServiceMock)

@@ -29,7 +29,7 @@ public class TransactionWriter implements ItemWriter<Transaction> {
     private final WriterTrackerService writerTrackerService;
     private final CsvTransactionPublisherService csvTransactionPublisherService;
     private TransactionItemWriterListener transactionItemWriterListener;
-    private Integer executorPoolSize;
+    private Executor executor;
 
     /**
      * Implementation of the {@link ItemWriter} write method, used for {@link Transaction} as the processed class
@@ -40,7 +40,6 @@ public class TransactionWriter implements ItemWriter<Transaction> {
     @Override
     public void write(List<? extends Transaction> transactions) throws Exception {
 
-        Executor executor = Executors.newFixedThreadPool(executorPoolSize);
         CountDownLatch countDownLatch = new CountDownLatch(transactions.size());
         writerTrackerService.addCountDownLatch(countDownLatch);
 

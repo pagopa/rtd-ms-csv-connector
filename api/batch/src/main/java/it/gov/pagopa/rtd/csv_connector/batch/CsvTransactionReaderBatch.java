@@ -57,6 +57,8 @@ import java.io.FileNotFoundException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -290,7 +292,7 @@ public class CsvTransactionReaderBatch {
     public ItemWriter<Transaction> getItemWriter(TransactionItemWriterListener writerListener) {
         TransactionWriter transactionWriter = beanFactory.getBean(TransactionWriter.class, writerTrackerService);
         transactionWriter.setTransactionItemWriterListener(writerListener);
-        transactionWriter.setExecutorPoolSize(executorPoolSize);
+        transactionWriter.setExecutor(writerExecutor());
         return transactionWriter;
     }
 
@@ -434,6 +436,15 @@ public class CsvTransactionReaderBatch {
         taskExecutor.setCorePoolSize(partitionerCorePoolSize);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
+    }
+
+    /**
+     *
+     * @return bean configured for usage for chunk reading of a single file
+     */
+    @Bean
+    public Executor writerExecutor() {
+        return Executors.newFixedThreadPool(executorPoolSize);
     }
 
     /**
