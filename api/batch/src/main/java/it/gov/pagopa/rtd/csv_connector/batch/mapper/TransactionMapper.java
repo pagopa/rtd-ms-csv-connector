@@ -34,7 +34,7 @@ public class TransactionMapper {
                     inboundTransaction.getPan()
             );
             transaction.setAmount(BigDecimal.valueOf(inboundTransaction.getAmount())
-                    .divide(BigDecimal.valueOf(100L), RoundingMode.HALF_EVEN));
+                    .divide(BigDecimal.valueOf(100L),2, RoundingMode.HALF_EVEN));
         }
 
         return transaction;

@@ -84,6 +84,7 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
                 "classpath:config/testCsvTransactionPublisher.properties",
         },
         properties = {
+                "spring.main.allow-bean-definition-overriding=true",
                 "batchConfiguration.CsvTransactionReaderBatch.applyHashing=true",
                 "batchConfiguration.CsvTransactionReaderBatch.applyDecrypt=true",
                 "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",
@@ -125,12 +126,6 @@ public class CsvTransactionReaderBatchTest {
     @SpyBean
     private CsvTransactionPublisherService csvTransactionPublisherServiceSpy;
 
-    @SpyBean
-    private InboundTransactionItemProcessor inboundTransactionItemProcessorSpy;
-
-    @SpyBean
-    private TransactionWriter transactionWriterSpy;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder(
             new File(getClass().getResource("/test-encrypt").getFile()));
@@ -141,9 +136,7 @@ public class CsvTransactionReaderBatchTest {
     public void setUp() {
         Mockito.reset(
                 csvTransactionPublisherConnectorSpy,
-                csvTransactionPublisherServiceSpy,
-                inboundTransactionItemProcessorSpy,
-                transactionWriterSpy);
+                csvTransactionPublisherServiceSpy);
         ObjectName kafkaServerMbeanName = new ObjectName("kafka.server:type=app-info,id=0");
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         if (mBeanServer.isRegistered(kafkaServerMbeanName)) {
@@ -187,10 +180,8 @@ public class CsvTransactionReaderBatchTest {
                             resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
-            Mockito.verifyZeroInteractions(inboundTransactionItemProcessorSpy);
             Mockito.verifyZeroInteractions(csvTransactionPublisherServiceSpy);
             Mockito.verifyZeroInteractions(csvTransactionPublisherConnectorSpy);
-            Mockito.verifyZeroInteractions(transactionWriterSpy);
 
         } catch (Exception e) {
             e.printStackTrace();
