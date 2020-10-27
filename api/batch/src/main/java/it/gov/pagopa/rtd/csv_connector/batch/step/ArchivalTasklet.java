@@ -16,6 +16,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -36,10 +38,10 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
 
     /**
      *
-     * @throws Exception
+     * @throws IOException
      */
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() throws IOException {
         Assert.notNull(resolver.getResources("file:" + successPath + "*.pgp"),
                 "directory must be set");
         Assert.notNull(resolver.getResources("file:" + errorPath + "*.pgp"),
@@ -52,10 +54,10 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
      * @param stepContribution
      * @param chunkContext
      * @return Status of the tasklet execution
-     * @throws Exception
+     * @throws IOException
      */
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws IOException {
         Collection<StepExecution> stepExecutions = chunkContext.getStepContext().getStepExecution().getJobExecution()
                 .getStepExecutions();
         for (StepExecution stepExecution : stepExecutions) {
@@ -89,8 +91,9 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
 
                     FileUtils.moveFile(FileUtils.getFile(path), destFile);
 
-                } catch (Exception e) {
+                } catch (IOException e) {
                     log.error(e.getMessage(), e);
+                    throw e;
                 }
             }
         }

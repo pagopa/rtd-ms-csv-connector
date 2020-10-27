@@ -8,6 +8,7 @@ import org.springframework.batch.core.ItemReadListener;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -49,7 +50,7 @@ public class TransactionItemReaderListener implements ItemReadListener<Transacti
                 FileUtils.writeStringToFile(
                         file, (lineArray.length > 1 ? lineArray[1] : lineArray[0]).concat("\n"),
                         Charset.defaultCharset(), true);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error(e.getMessage(),e);
             }
 

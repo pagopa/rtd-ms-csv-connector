@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -25,14 +26,10 @@ public class TransactionItemProcessListener implements ItemProcessListener<Trans
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeProcess(Transaction item) {
-
-    }
+    public void beforeProcess(Transaction item) {}
 
     @Override
-    public void afterProcess(Transaction item, Transaction result) {
-
-    }
+    public void afterProcess(Transaction item, Transaction result) {}
 
     public void onProcessError(Transaction item, Exception throwable) {
 
@@ -52,7 +49,7 @@ public class TransactionItemProcessListener implements ItemProcessListener<Trans
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                                 .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
                 FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
         }

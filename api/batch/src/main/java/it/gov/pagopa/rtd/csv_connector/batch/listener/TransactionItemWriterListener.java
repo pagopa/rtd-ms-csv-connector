@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class TransactionItemWriterListener implements ItemWriteListener<Transact
                     FileUtils.writeStringToFile(
                             file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
 
-                } catch (Exception e) {
+                } catch (IOException e) {
                     log.error(e.getMessage(), e);
                 }
             }
@@ -84,7 +85,7 @@ public class TransactionItemWriterListener implements ItemWriteListener<Transact
                 FileUtils.writeStringToFile(
                         file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
         }

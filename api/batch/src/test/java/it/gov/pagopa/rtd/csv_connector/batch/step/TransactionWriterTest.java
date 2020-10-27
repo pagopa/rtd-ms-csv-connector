@@ -58,39 +58,41 @@ public class TransactionWriterTest extends BaseTest {
         BDDMockito.verifyZeroInteractions(csvTransactionPublisherServiceMock);
     }
 
-//    @Test
-//    public void testWriterEmptyList() {
-//        try {
-//            transactionWriter.write(Collections.emptyList());
-//            BDDMockito.verifyZeroInteractions(csvTransactionPublisherServiceMock);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            Assert.fail();
-//        }
-//    }
-//
-//    @Test
-//    public void testWriterMonoList() {
-//        try {
-//            transactionWriter.write(Collections.singletonList(Transaction.builder().build()));
-//            BDDMockito.verify(csvTransactionPublisherServiceMock, Mockito.times(1))
-//                    .publishTransactionEvent(Mockito.any(Transaction.class));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            Assert.fail();
-//        }
-//    }
+    @Test
+    public void testWriterEmptyList() {
+        try {
+            transactionWriter.write(Collections.emptyList());
+            BDDMockito.verifyZeroInteractions(csvTransactionPublisherServiceMock);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
 
-//    @Test
-//    public void testWriterMultiList() {
-//        try {
-//            transactionWriter.write(Collections.nCopies(5,Transaction.builder().build()));
-//            BDDMockito.verify(csvTransactionPublisherServiceMock, Mockito.times(5))
-//                    .publishTransactionEvent(Mockito.any(Transaction.class));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            Assert.fail();
-//        }
-//    }
+    @Test
+    public void testWriterMonoList() {
+        try {
+            transactionWriter.write(Collections.singletonList(Transaction.builder().build()));
+            Thread.sleep(1000);
+            BDDMockito.verify(csvTransactionPublisherServiceMock, Mockito.times(1))
+                    .publishTransactionEvent(Mockito.any(Transaction.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testWriterMultiList() {
+        try {
+            transactionWriter.write(Collections.nCopies(5,Transaction.builder().build()));
+            Thread.sleep(1000);
+            BDDMockito.verify(csvTransactionPublisherServiceMock, Mockito.times(5))
+                    .publishTransactionEvent(Mockito.any(Transaction.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
 
 }

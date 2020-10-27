@@ -54,6 +54,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -156,16 +157,13 @@ public class CsvTransactionReaderBatch {
     @Scheduled(cron = "${batchConfiguration.CsvTransactionReaderBatch.cron}")
     public void launchJob() throws Exception {
 
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] transactionResources = resolver.getResources(directoryPath);
-
         Date startDate = new Date();
         log.info("CsvTransactionReader scheduled job started at {}", startDate);
 
         if (writerTrackerService == null) {
             createWriterTrackerService();
         }
-        JobExecution jobExecution = transactionJobLauncher().run(
+        transactionJobLauncher().run(
                 job(), new JobParametersBuilder()
                         .addDate("startDateTime", startDate)
                         .toJobParameters());
@@ -300,7 +298,6 @@ public class CsvTransactionReaderBatch {
      *
      * @return step instance based on the tasklet to be used for file archival at the end of the reading process
      */
-    @SneakyThrows
     @Bean
     public Step terminationTask() {
         if (writerTrackerService == null) {
@@ -315,7 +312,6 @@ public class CsvTransactionReaderBatch {
      *
      * @return step instance based on the tasklet to be used for file archival at the end of the reading process
      */
-    @SneakyThrows
     @Bean
     public Step archivalTask() {
         ArchivalTasklet archivalTasklet = new ArchivalTasklet();
@@ -328,8 +324,7 @@ public class CsvTransactionReaderBatch {
      *
      * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
      */
-    @SneakyThrows
-    public FlowJobBuilder transactionJobBuilder() {
+    public FlowJobBuilder transactionJobBuilder() throws Exception {
         return jobBuilderFactory.get("csv-transaction-job")
                 .repository(getJobRepository())
                 .start(masterStep()).on("FAILED").to(archivalTask())
@@ -344,7 +339,7 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     @JobScope
-    public Partitioner partitioner() throws Exception {
+    public Partitioner partitioner() throws IOException {
         MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         partitioner.setResources(resolver.getResources(directoryPath));
@@ -359,7 +354,7 @@ public class CsvTransactionReaderBatch {
      * @throws Exception
      */
     @Bean
-    public Step masterStep() throws Exception {
+    public Step masterStep() throws IOException {
         return stepBuilderFactory.get("csv-transaction-connector-master-step").partitioner(workerStep())
                 .partitioner("partition", partitioner())
                 .taskExecutor(partitionerTaskExecutor()).build();
@@ -372,7 +367,7 @@ public class CsvTransactionReaderBatch {
      * @throws Exception
      */
     @Bean
-    public TaskletStep workerStep() throws Exception {
+    public TaskletStep workerStep() {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String executionDate = OffsetDateTime.now().format(fmt);
 
