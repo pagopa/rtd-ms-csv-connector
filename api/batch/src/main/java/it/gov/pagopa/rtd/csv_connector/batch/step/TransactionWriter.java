@@ -44,10 +44,10 @@ public class TransactionWriter implements ItemWriter<Transaction> {
         transactions.forEach(transaction -> executor.execute(() -> {
             try {
                 csvTransactionPublisherService.publishTransactionEvent(transaction);
-                countDownLatch.countDown();
             } catch (Exception e) {
                 transactionItemWriterListener.onWriteError(e, transaction);
             }
+            countDownLatch.countDown();
         }));
 
     }
