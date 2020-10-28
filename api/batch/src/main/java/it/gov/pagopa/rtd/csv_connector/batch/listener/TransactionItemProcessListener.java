@@ -1,5 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
+import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import java.nio.charset.Charset;
  */
 @Slf4j
 @Data
-public class TransactionItemProcessListener implements ItemProcessListener<Transaction, Transaction> {
+public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction, Transaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
@@ -26,12 +27,12 @@ public class TransactionItemProcessListener implements ItemProcessListener<Trans
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeProcess(Transaction item) {}
+    public void beforeProcess(InboundTransaction item) {}
 
     @Override
-    public void afterProcess(Transaction item, Transaction result) {}
+    public void afterProcess(InboundTransaction item, Transaction result) {}
 
-    public void onProcessError(Transaction item, Exception throwable) {
+    public void onProcessError(InboundTransaction item, Exception throwable) {
 
         if (enableOnErrorLogging) {
             log.error("Error during during transaction record processing - {}, transaction: " +
@@ -56,11 +57,11 @@ public class TransactionItemProcessListener implements ItemProcessListener<Trans
 
     }
 
-    private String buildCsv(Transaction inboundTransaction) {
+    private String buildCsv(InboundTransaction inboundTransaction) {
         return (inboundTransaction.getAcquirerCode() != null ? inboundTransaction.getAcquirerCode() : "").concat(";")
                 .concat(inboundTransaction.getOperationType() != null ? inboundTransaction.getOperationType() : "").concat(";")
                 .concat(inboundTransaction.getCircuitType() != null ? inboundTransaction.getCircuitType() : "").concat(";")
-                .concat(inboundTransaction.getHpan() != null ? inboundTransaction.getHpan() : "").concat(";")
+                .concat(inboundTransaction.getPan() != null ? inboundTransaction.getPan() : "").concat(";")
                 .concat(inboundTransaction.getTrxDate() != null ? inboundTransaction.getTrxDate() : "").concat(";")
                 .concat(inboundTransaction.getIdTrxAcquirer() != null ? inboundTransaction.getIdTrxAcquirer() : "").concat(";")
                 .concat(inboundTransaction.getIdTrxIssuer() != null ? inboundTransaction.getIdTrxIssuer() : "").concat(";")

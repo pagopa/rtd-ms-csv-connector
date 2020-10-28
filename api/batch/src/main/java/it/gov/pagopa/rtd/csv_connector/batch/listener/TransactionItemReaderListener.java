@@ -1,5 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
+import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.nio.charset.Charset;
 
 @Slf4j
 @Data
-public class TransactionItemReaderListener implements ItemReadListener<Transaction> {
+public class TransactionItemReaderListener implements ItemReadListener<InboundTransaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
@@ -31,7 +32,7 @@ public class TransactionItemReaderListener implements ItemReadListener<Transacti
     @Override
     public void beforeRead() {}
 
-    public void afterRead(Transaction item) {}
+    public void afterRead(InboundTransaction item) {}
 
     public void onReadError(Exception throwable) {
 

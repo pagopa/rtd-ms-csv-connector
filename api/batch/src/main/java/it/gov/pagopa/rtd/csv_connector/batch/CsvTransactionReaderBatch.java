@@ -392,6 +392,7 @@ public class CsvTransactionReaderBatch {
     public TransactionItemReaderListener transactionItemReaderListener(String executionDate) {
         TransactionItemReaderListener transactionItemReaderListener = new TransactionItemReaderListener();
         transactionItemReaderListener.setExecutionDate(executionDate);
+        transactionItemReaderListener.setErrorTransactionsLogsPath(errorLogsPath);
         transactionItemReaderListener.setEnableOnErrorFileLogging(enableOnReadErrorFileLogging);
         transactionItemReaderListener.setEnableOnErrorLogging(enableOnReadErrorLogging);
         return transactionItemReaderListener;
@@ -401,6 +402,7 @@ public class CsvTransactionReaderBatch {
     public TransactionItemWriterListener transactionsItemWriteListener(String executionDate) {
         TransactionItemWriterListener transactionsItemWriteListener = new TransactionItemWriterListener();
         transactionsItemWriteListener.setExecutionDate(executionDate);
+        transactionsItemWriteListener.setErrorTransactionsLogsPath(errorLogsPath);
         transactionsItemWriteListener.setEnableOnErrorFileLogging(enableOnWriteErrorFileLogging);
         transactionsItemWriteListener.setEnableOnErrorLogging(enableOnWriteErrorLogging);
         return transactionsItemWriteListener;
@@ -410,6 +412,7 @@ public class CsvTransactionReaderBatch {
     public TransactionItemProcessListener transactionsItemProcessListener(String executionDate) {
         TransactionItemProcessListener transactionItemProcessListener = new TransactionItemProcessListener();
         transactionItemProcessListener.setExecutionDate(executionDate);
+        transactionItemProcessListener.setErrorTransactionsLogsPath(errorLogsPath);
         transactionItemProcessListener.setEnableOnErrorFileLogging(enableOnProcessErrorFileLogging);
         transactionItemProcessListener.setEnableOnErrorLogging(enableOnProcessErrorLogging);
         return transactionItemProcessListener;
