@@ -2,9 +2,7 @@ package it.gov.pagopa.rtd.csv_connector.batch.step;
 
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
-import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.openpgp.PGPException;
 import org.springframework.batch.item.file.FlatFileItemReader;

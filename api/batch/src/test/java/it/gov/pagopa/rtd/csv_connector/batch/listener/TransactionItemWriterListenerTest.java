@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
-import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;

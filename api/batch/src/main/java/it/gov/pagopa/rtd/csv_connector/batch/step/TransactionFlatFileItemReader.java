@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
-import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

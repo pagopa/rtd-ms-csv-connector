@@ -8,8 +8,6 @@ import eu.sia.meda.event.transformer.SimpleEventResponseTransformer;
 import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
 import it.gov.pagopa.rtd.csv_connector.batch.config.TestConfig;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
-import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
-import it.gov.pagopa.rtd.csv_connector.batch.step.TransactionWriter;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
