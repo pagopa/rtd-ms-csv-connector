@@ -1,5 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
+import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
@@ -37,7 +38,7 @@ public class TransactionItemWriterListenerTest {
         transactionItemWriterListener.setEnableOnErrorLogging(true);
         transactionItemWriterListener.setResolver(new PathMatchingResourcePatternResolver());
         transactionItemWriterListener.setErrorTransactionsLogsPath("file:/"+folder.getAbsolutePath());
-        transactionItemWriterListener.onWriteError(new Exception(), Collections.singletonList(Transaction
+        transactionItemWriterListener.onWriteError(new Exception(), Collections.singletonList(InboundTransaction
                 .builder().build()));
 
         Assert.assertEquals(1,

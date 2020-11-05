@@ -1,6 +1,8 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListener;
+import it.gov.pagopa.rtd.csv_connector.batch.mapper.TransactionMapper;
+import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import it.gov.pagopa.rtd.csv_connector.service.WriterTrackerService;
@@ -22,30 +24,33 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Data
 @Component
-public class TransactionWriter implements ItemWriter<Transaction> {
+public class TransactionWriter implements ItemWriter<InboundTransaction> {
 
     private final WriterTrackerService writerTrackerService;
     private final CsvTransactionPublisherService csvTransactionPublisherService;
     private TransactionItemWriterListener transactionItemWriterListener;
     private Executor executor;
+    private final TransactionMapper mapper;
+    private Boolean applyHashing;
 
     /**
      * Implementation of the {@link ItemWriter} write method, used for {@link Transaction} as the processed class
-     * @param transactions
+     * @param inboundTransactions
      *           list of {@link Transaction} from the process phase of a reader to be sent on an outbound Kafka channel
      * @throws Exception
      */
     @Override
-    public void write(List<? extends Transaction> transactions) throws Exception {
+    public void write(List<? extends InboundTransaction> inboundTransactions) throws Exception {
 
-        CountDownLatch countDownLatch = new CountDownLatch(transactions.size());
+        CountDownLatch countDownLatch = new CountDownLatch(inboundTransactions.size());
         writerTrackerService.addCountDownLatch(countDownLatch);
 
-        transactions.forEach(transaction -> executor.execute(() -> {
+        inboundTransactions.forEach(inboundTransaction -> executor.execute(() -> {
             try {
+                Transaction transaction = mapper.map(inboundTransaction, applyHashing);
                 csvTransactionPublisherService.publishTransactionEvent(transaction);
             } catch (Exception e) {
-                transactionItemWriterListener.onWriteError(e, transaction);
+                transactionItemWriterListener.onWriteError(e, inboundTransaction);
             }
             countDownLatch.countDown();
         }));

@@ -34,7 +34,7 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
     private LineCallbackHandler skippedLinesCallback;
     private boolean strict;
     private BufferedReaderFactory bufferedReaderFactory;
-    private HashMap<String,Integer> lineToRecordCount;
+    private String filename;
 
     public TransactionFlatFileItemReader() {
         this.comments = DEFAULT_COMMENT_PREFIXES;
@@ -44,7 +44,6 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
         this.strict = true;
         this.bufferedReaderFactory = new DefaultBufferedReaderFactory();
         this.setName(ClassUtils.getShortName(FlatFileItemReader.class));
-        this.lineToRecordCount = new HashMap<>();
     }
 
     public void setStrict(boolean strict) {
@@ -80,6 +79,10 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
         this.resource = resource;
     }
 
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     public void setRecordSeparatorPolicy(RecordSeparatorPolicy recordSeparatorPolicy) {
         this.recordSeparatorPolicy = recordSeparatorPolicy;
     }
@@ -101,7 +104,9 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
                             innerCount);
 
                 } catch (Exception var3) {
-                    throw new FlatFileParseException("Parsing error at line: " + innerCount + " in resource=[" + this.resource.getDescription() + "]" , var3, line, innerCount);
+                    throw new FlatFileParseException("Parsing error at line: " + innerCount + " in resource=[" +
+                            (this.filename != null ? this.filename : this.resource.getDescription())
+                            + "]" , var3, line, innerCount);
                 }
             }
         }
@@ -140,7 +145,9 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
                 }
             } catch (IOException var3) {
                 this.noInput = true;
-                throw new NonTransientFlatFileException("Unable to read from resource: [" + this.resource + "]", var3, line, this.lineCount);
+                throw new NonTransientFlatFileException("Unable to read from resource: [" +
+                        (this.filename != null ? this.filename : this.resource.getDescription())+ "]",
+                        var3, line, this.lineCount);
             }
         }
     }

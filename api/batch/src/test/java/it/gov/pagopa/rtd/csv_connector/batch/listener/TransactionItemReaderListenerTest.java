@@ -63,8 +63,8 @@ public class TransactionItemReaderListenerTest {
         transactionItemReaderListener.setEnableOnErrorFileLogging(true);
         transactionItemReaderListener.setResolver(new PathMatchingResourcePatternResolver());
         transactionItemReaderListener.setErrorTransactionsLogsPath("file:/"+folder.getAbsolutePath());
-        transactionItemReaderListener.onReadError(new FlatFileParseException("Parsing error at line: " +
-                1, new Exception(), "input", 1));
+        transactionItemReaderListener.onReadError(new FlatFileParseException(
+                "Parsing error at line: 1 in resource=[[file:/input]]", new Exception(), "input", 1));
 
         Assert.assertEquals(1,
                 FileUtils.listFiles(

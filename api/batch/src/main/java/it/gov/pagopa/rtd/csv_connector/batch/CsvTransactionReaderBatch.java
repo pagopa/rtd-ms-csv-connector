@@ -128,6 +128,10 @@ public class CsvTransactionReaderBatch {
     private Boolean enableOnWriteErrorLogging;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.executorPoolSize}")
     private Integer executorPoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.applyEncrypt}")
+    private Boolean applyEncrypt;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.publicKeyPath}")
+    private String publicKey;
 
     private DataSource dataSource;
     private WriterTrackerService writerTrackerService;
@@ -240,10 +244,10 @@ public class CsvTransactionReaderBatch {
      *
      * @return instance of the LineMapper to be used in the itemReader configured for the job
      */
-    @Bean
-    public LineMapper<InboundTransaction> transactionLineMapper() {
+    public LineMapper<InboundTransaction> transactionLineMapper(String file) {
         LineAwareMapper lineMapper = new LineAwareMapper();
         lineMapper.setTokenizer(transactionLineTokenizer());
+        lineMapper.setFilename(file);
         lineMapper.setFieldSetMapper(transactionFieldSetMapper());
         return lineMapper;
     }
@@ -261,7 +265,7 @@ public class CsvTransactionReaderBatch {
             @Value("#{stepExecutionContext['fileName']}") String file) {
         PGPFlatFileItemReader flatFileItemReader = new PGPFlatFileItemReader(secretKeyPath, passphrase, applyDecrypt);
         flatFileItemReader.setResource(new UrlResource(file));
-        flatFileItemReader.setLineMapper(transactionLineMapper());
+        flatFileItemReader.setLineMapper(transactionLineMapper(file));
         flatFileItemReader.setLinesToSkip(linesToSkip);
         return flatFileItemReader;
     }
@@ -272,11 +276,8 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     @StepScope
-    public ItemProcessor<InboundTransaction, Transaction> transactionItemProcessor() {
-        InboundTransactionItemProcessor inboundTransactionItemProcessor =
-                beanFactory.getBean(InboundTransactionItemProcessor.class);
-        inboundTransactionItemProcessor.setApplyHashing(applyHashing);
-        return inboundTransactionItemProcessor;
+    public ItemProcessor<InboundTransaction, InboundTransaction> transactionItemProcessor() {
+        return beanFactory.getBean(InboundTransactionItemProcessor.class);
     }
 
     /**
@@ -285,10 +286,11 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     @StepScope
-    public ItemWriter<Transaction> getItemWriter(TransactionItemWriterListener writerListener) {
+    public ItemWriter<InboundTransaction> getItemWriter(TransactionItemWriterListener writerListener) {
         TransactionWriter transactionWriter = beanFactory.getBean(TransactionWriter.class, writerTrackerService);
         transactionWriter.setTransactionItemWriterListener(writerListener);
         transactionWriter.setExecutor(writerExecutor());
+        transactionWriter.setApplyHashing(applyHashing);
         return transactionWriter;
     }
 
@@ -302,6 +304,9 @@ public class CsvTransactionReaderBatch {
             createWriterTrackerService();
         }
         TerminationTasklet terminationTasklet = new TerminationTasklet(writerTrackerService);
+        terminationTasklet.setApplyEncrypt(applyEncrypt);
+        terminationTasklet.setErrorDir(errorLogsPath);
+        terminationTasklet.setPublicKeyDir(publicKey);
         return stepBuilderFactory.get("csv-success-termination-step").tasklet(terminationTasklet).build();
     }
 
@@ -369,7 +374,7 @@ public class CsvTransactionReaderBatch {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String executionDate = OffsetDateTime.now().format(fmt);
 
-        return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, Transaction>chunk(chunkSize)
+        return stepBuilderFactory.get("csv-transaction-connector-master-inner-step").<InboundTransaction, InboundTransaction>chunk(chunkSize)
                 .reader(transactionItemReader(null))
                 .processor(transactionItemProcessor())
                 .writer(getItemWriter(transactionsItemWriteListener(executionDate)))

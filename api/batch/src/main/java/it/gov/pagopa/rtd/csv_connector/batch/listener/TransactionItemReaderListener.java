@@ -22,7 +22,6 @@ public class TransactionItemReaderListener implements ItemReadListener<InboundTr
 
     private String errorTransactionsLogsPath;
     private String executionDate;
-    private String filename;
     private Boolean enableOnErrorLogging;
     private Boolean enableOnErrorFileLogging;
     private Long loggingFrequency;
@@ -41,11 +40,15 @@ public class TransactionItemReaderListener implements ItemReadListener<InboundTr
 
         if (enableOnErrorFileLogging && throwable instanceof FlatFileParseException) {
             FlatFileParseException flatFileParseException = (FlatFileParseException) throwable;
+            String filename =  flatFileParseException.getMessage().split("\\[",3)[2]
+                    .replaceAll("]","").replaceAll("\\\\", "/");
+            String[] fileArr = filename.split("/");
 
             try {
                 File file = new File(
-                resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                 .concat("/".concat(executionDate))+ "_transactionsErrorRecords.csv");
+                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                .concat("/".concat(executionDate))
+                                + "_ValidationErrorRecords_"+fileArr[fileArr.length-1]+".csv");
                 String[] lineArray = flatFileParseException.getInput().split("_",2);
                 FileUtils.writeStringToFile(
                         file, (lineArray.length > 1 ? lineArray[1] : lineArray[0]).concat("\n"),

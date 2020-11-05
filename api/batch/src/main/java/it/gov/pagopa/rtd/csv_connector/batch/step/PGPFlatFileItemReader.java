@@ -59,6 +59,7 @@ public class PGPFlatFileItemReader extends TransactionFlatFileItemReader {
                             secretFilePathIS,
                             passphrase.toCharArray()
                     );
+                    super.setFilename(this.resource.getDescription());
                     super.setResource(new InputStreamResource(new ByteArrayInputStream(decryptFileData)));
 
                 }

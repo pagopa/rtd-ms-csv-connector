@@ -17,11 +17,10 @@ import java.nio.charset.Charset;
  */
 @Slf4j
 @Data
-public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction, Transaction> {
+public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction, InboundTransaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
-    private String filename;
     private Boolean enableOnErrorLogging;
     private Boolean enableOnErrorFileLogging;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
@@ -30,7 +29,7 @@ public class TransactionItemProcessListener implements ItemProcessListener<Inbou
     public void beforeProcess(InboundTransaction item) {}
 
     @Override
-    public void afterProcess(InboundTransaction item, Transaction result) {}
+    public void afterProcess(InboundTransaction item, InboundTransaction result) {}
 
     public void onProcessError(InboundTransaction item, Exception throwable) {
 
@@ -41,14 +40,17 @@ public class TransactionItemProcessListener implements ItemProcessListener<Inbou
                     item.getAcquirerCode(),
                     item.getTrxDate(),
                     item.getIdTrxAcquirer(),
-                    filename);
+                    item.getFilename());
         }
 
         if (enableOnErrorFileLogging) {
             try {
+                String filename = item.getFilename().replaceAll("\\\\", "/");
+                String[] fileArr = filename.split("/");
                 File file = new File(
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
+                                .concat("/".concat(executionDate))
+                                + "_ValidationErrorRecords_"+fileArr[fileArr.length-1]+".csv");
                 FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
