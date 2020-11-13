@@ -15,5 +15,7 @@
     <modules>
         <module>jpa</module>
         <module>event</module>
+        <module>rest</module>
     </modules>
+
 </project>

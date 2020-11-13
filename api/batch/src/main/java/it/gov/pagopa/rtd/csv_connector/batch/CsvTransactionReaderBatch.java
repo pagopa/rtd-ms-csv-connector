@@ -6,11 +6,11 @@ import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemReaderListe
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListener;
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionReaderStepListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
-import it.gov.pagopa.rtd.csv_connector.batch.mapper.LineAwareMapper;
+import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionLineMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.batch.step.*;
-import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import it.gov.pagopa.rtd.csv_connector.service.WriterTrackerService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +65,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * to be processed in instances of Transaction class, to be sent in an outbound Kafka channel
  */
 
+@Data
 @Configuration
 @PropertySource("classpath:config/csvTransactionReaderBatch.properties")
 @EnableBatchProcessing
@@ -154,7 +155,7 @@ public class CsvTransactionReaderBatch {
      * TransactionItemWriterListener
      * TransactionReaderStepListenered method used to launch the configured batch job for processing transaction from a defined directory.
      * The scheduler is based on a cron execution, based on the provided configuration
-     * @throws Exception
+     * @throws  Exception
      */
     @Scheduled(cron = "${batchConfiguration.CsvTransactionReaderBatch.cron}")
     public void launchJob() throws Exception {
@@ -245,7 +246,7 @@ public class CsvTransactionReaderBatch {
      * @return instance of the LineMapper to be used in the itemReader configured for the job
      */
     public LineMapper<InboundTransaction> transactionLineMapper(String file) {
-        LineAwareMapper lineMapper = new LineAwareMapper();
+        InboundTransactionLineMapper lineMapper = new InboundTransactionLineMapper();
         lineMapper.setTokenizer(transactionLineTokenizer());
         lineMapper.setFilename(file);
         lineMapper.setFieldSetMapper(transactionFieldSetMapper());

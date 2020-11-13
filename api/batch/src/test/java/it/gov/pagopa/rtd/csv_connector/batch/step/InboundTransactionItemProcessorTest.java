@@ -49,53 +49,6 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
 
     }
 
-//    @Test
-//    public void processValidInboundTransaction_NoHashing() {
-//
-//        try {
-//            InboundTransaction inboundTransaction = getInboundTransaction();
-//            this.inboundTransactionItemProcessor.setApplyHashing(false);
-//            Transaction transaction = inboundTransactionItemProcessor.
-//                    process(inboundTransaction);
-//            Assert.assertNotNull(transaction);
-//            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
-//            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
-//            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            Assert.fail();
-//        }
-//
-//    }
-//
-//    @Test
-//    public void process_OK_validForReturn() {
-//        try {
-//
-//            InboundTransaction inboundTransaction = getInboundTransaction();
-//            inboundTransaction.setOperationType("01");
-//            inboundTransaction.setIdTrxIssuer("");
-//            this.inboundTransactionItemProcessor.setApplyHashing(false);
-//
-//            Transaction transaction = inboundTransactionItemProcessor.process(inboundTransaction);
-//            Assert.assertNotNull(transaction);
-//            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
-//            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
-//            inboundTransaction = getInboundTransaction();
-//            inboundTransaction.setOperationType("01");
-//            inboundTransaction.setIdTrxIssuer(null);
-//            transaction = inboundTransactionItemProcessor.process(inboundTransaction);
-//            Assert.assertNotNull(transaction);
-//            Assert.assertEquals(inboundTransaction.getPan(),transaction.getHpan());
-//            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
-//            Mockito.verify(mapperSpy, Mockito.times(2)).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
-//
-//        } catch (Exception e) {
-//            Assert.fail();
-//            e.printStackTrace();
-//        }
-//    }
-
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
 

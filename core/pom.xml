@@ -20,6 +20,10 @@
             <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
             <artifactId>rtd-ms-csv-connector-integration-jpa</artifactId>
         </dependency>
+        <dependency>
+            <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
+            <artifactId>rtd-ms-csv-connector-integration-rest</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

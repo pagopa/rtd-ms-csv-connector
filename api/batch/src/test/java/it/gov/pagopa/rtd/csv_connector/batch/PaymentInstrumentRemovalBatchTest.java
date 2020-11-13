@@ -75,7 +75,7 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
         KafkaAutoConfiguration.class,
         SimpleEventRequestTransformer.class,
         SimpleEventResponseTransformer.class,
-        CsvTransactionReaderBatch.class
+        PaymentInstrumentRemovalBatch.class
 })
 @TestPropertySource(
         locations = {
@@ -83,23 +83,22 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
         },
         properties = {
                 "spring.main.allow-bean-definition-overriding=true",
-                "batchConfiguration.CsvTransactionReaderBatch.applyHashing=true",
-                "batchConfiguration.CsvTransactionReaderBatch.applyDecrypt=true",
-                "batchConfiguration.CsvTransactionReaderBatch.secretKeyPath=classpath:/test-encrypt/secretKey.asc",
-                "batchConfiguration.CsvTransactionReaderBatch.passphrase=test",
-                "batchConfiguration.CsvTransactionReaderBatch.skipLimit=3",
-                "batchConfiguration.CsvTransactionReaderBatch.partitionerMaxPoolSize=1",
-                "batchConfiguration.CsvTransactionReaderBatch.partitionerCorePoolSize=1",
-                "batchConfiguration.CsvTransactionReaderBatch.readerMaxPoolSize=1",
-                "batchConfiguration.CsvTransactionReaderBatch.readerCorePoolSize=1",
-                "batchConfiguration.CsvTransactionReaderBatch.classpath=classpath:/test-encrypt/**/*.pgp",
-                "batchConfiguration.CsvTransactionReaderBatch.successArchivePath=classpath:/test-encrypt/**/success",
-                "batchConfiguration.CsvTransactionReaderBatch.errorArchivePath=classpath:/test-encrypt/**/error",
-                "batchConfiguration.CsvTransactionReaderBatch.timestampPattern=MM/dd/yyyy HH:mm:ss",
-                "batchConfiguration.CsvTransactionReaderBatch.linesToSkip=0",
-                "connectors.eventConfigurations.items.CsvTransactionPublisherConnector.bootstrapServers=${spring.embedded.kafka.brokers}"
+                "batchConfiguration.PaymentInstrumentRemovalBatch.applyHashing=true",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.applyDecrypt=true",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.secretKeyPath=classpath:/test-encrypt-pm/secretKey.asc",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.passphrase=test",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.skipLimit=3",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.partitionerMaxPoolSize=1",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.partitionerCorePoolSize=1",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.readerMaxPoolSize=1",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.readerCorePoolSize=1",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.classpath=classpath:/test-encrypt-pm/**/*.pgp",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.successArchivePath=classpath:/test-encrypt-pm/**/success",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.errorArchivePath=classpath:/test-encrypt-pm/**/error",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.timestampPattern=MM/dd/yyyy HH:mm:ss",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.linesToSkip=0",
         })
-public class CsvTransactionReaderBatchTest {
+public class PaymentInstrumentRemovalBatchTest {
 
     @Autowired
     ArchEventConfigurationService archEventConfigurationService;
@@ -126,7 +125,7 @@ public class CsvTransactionReaderBatchTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder(
-            new File(getClass().getResource("/test-encrypt").getFile()));
+            new File(getClass().getResource("/test-encrypt-pm").getFile()));
 
 
     @SneakyThrows
@@ -158,9 +157,9 @@ public class CsvTransactionReaderBatchTest {
             FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
             PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                    this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
+                    this.getClass().getResource("/test-encrypt-pm").getFile() + "/test-pm.csv",
                     PGPDecryptUtil.readPublicKey(
-                            this.getClass().getResourceAsStream("/test-encrypt/otherPublicKey.asc")),
+                            this.getClass().getResourceAsStream("/test-encrypt-pm/otherPublicKey.asc")),
                     false,false);
 
             textTrxPgpFOS.close();
@@ -171,11 +170,11 @@ public class CsvTransactionReaderBatchTest {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Assert.assertEquals(0,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/success")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/success")[0].getFile(),
                             new String[]{"pgp"},false).size());
             Assert.assertEquals(1,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
             Mockito.verifyZeroInteractions(csvTransactionPublisherServiceSpy);
@@ -196,9 +195,9 @@ public class CsvTransactionReaderBatchTest {
             FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
             PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                    this.getClass().getResource("/test-encrypt").getFile() + "/test-trx-ns.csv",
+                    this.getClass().getResource("/test-encrypt-pm").getFile() + "/test-pm-ns.csv",
                     PGPDecryptUtil.readPublicKey(
-                            this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
+                            this.getClass().getResourceAsStream("/test-encrypt-pm/publicKey.asc")),
                     false,false);
 
             textTrxPgpFOS.close();
@@ -209,11 +208,11 @@ public class CsvTransactionReaderBatchTest {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Assert.assertEquals(1,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/success")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/success")[0].getFile(),
                             new String[]{"pgp"},false).size());
             Assert.assertEquals(0,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
         } catch (Exception e) {
@@ -231,9 +230,9 @@ public class CsvTransactionReaderBatchTest {
             FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
             PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                    this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
+                    this.getClass().getResource("/test-encrypt-pm").getFile() + "/test-pm.csv",
                     PGPDecryptUtil.readPublicKey(
-                            this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
+                            this.getClass().getResourceAsStream("/test-encrypt-pm/publicKey.asc")),
                     false,false);
 
             textTrxPgpFOS.close();
@@ -244,11 +243,11 @@ public class CsvTransactionReaderBatchTest {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Assert.assertEquals(1,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/success")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/success")[0].getFile(),
                             new String[]{"pgp"},false).size());
             Assert.assertEquals(0,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
         } catch (Exception e) {
@@ -266,9 +265,9 @@ public class CsvTransactionReaderBatchTest {
             FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
             PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                    this.getClass().getResource("/test-encrypt").getFile() + "/test-err-trx.csv",
+                    this.getClass().getResource("/test-encrypt-pm").getFile() + "/test-err-pm.csv",
                     PGPDecryptUtil.readPublicKey(
-                            this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
+                            this.getClass().getResourceAsStream("/test-encrypt-pm/publicKey.asc")),
                     false,false);
 
             textTrxPgpFOS.close();
@@ -279,11 +278,11 @@ public class CsvTransactionReaderBatchTest {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Assert.assertEquals(0,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/success")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/success")[0].getFile(),
                             new String[]{"pgp"},false).size());
             Assert.assertEquals(1,
                     FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
+                            resolver.getResources("classpath:/test-encrypt-pm/**/error")[0].getFile(),
                             new String[]{"pgp"},false).size());
 
         } catch (Exception e) {

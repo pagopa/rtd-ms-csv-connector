@@ -1,5 +1,6 @@
 package it.gov.pagopa.rtd.csv_connector.batch.mapper;
 
+import it.gov.pagopa.rtd.csv_connector.batch.model.InboundPaymentInstrument;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import lombok.Data;
 import org.springframework.batch.item.file.FlatFileParseException;
@@ -10,20 +11,20 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 @Data
-public class LineAwareMapper<T> implements LineMapper<InboundTransaction>, InitializingBean {
+public class InboundPaymentInstrumentLineMapper implements LineMapper<InboundPaymentInstrument>, InitializingBean {
 
     private LineTokenizer tokenizer;
 
-    private FieldSetMapper<InboundTransaction> fieldSetMapper;
+    private FieldSetMapper<InboundPaymentInstrument> fieldSetMapper;
 
     private String filename;
 
-    public InboundTransaction mapLine(String line, int lineNumber) throws Exception {
+    public InboundPaymentInstrument mapLine(String line, int lineNumber) throws Exception {
         try{
-            InboundTransaction inboundTransaction = fieldSetMapper.mapFieldSet(tokenizer.tokenize(line));
-            inboundTransaction.setLineNumber(lineNumber);
-            inboundTransaction.setFilename(filename);
-            return inboundTransaction;
+            InboundPaymentInstrument inboundPaymentInstrument = fieldSetMapper.mapFieldSet(tokenizer.tokenize(line));
+            inboundPaymentInstrument.setLineNumber(lineNumber);
+            inboundPaymentInstrument.setFilename(filename);
+            return inboundPaymentInstrument;
         }
         catch(Exception ex){
             throw new FlatFileParseException("Parsing error at line: " + lineNumber, ex, line, lineNumber);

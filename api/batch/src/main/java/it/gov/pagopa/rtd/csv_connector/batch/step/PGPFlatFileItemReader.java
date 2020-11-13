@@ -24,7 +24,7 @@ import java.security.NoSuchProviderException;
 
 @RequiredArgsConstructor
 @Slf4j
-public class PGPFlatFileItemReader extends TransactionFlatFileItemReader {
+public class PGPFlatFileItemReader<T> extends CustomFlatFileItemReader<T> {
 
     private final String secretFilePath;
     private final String passphrase;
