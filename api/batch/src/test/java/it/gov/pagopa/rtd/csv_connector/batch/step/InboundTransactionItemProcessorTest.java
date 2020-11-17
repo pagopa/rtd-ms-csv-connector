@@ -78,7 +78,7 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
                 .correlationId("1")
                 .acquirerId("0")
                 .terminalId("0")
-                .bin("0000")
+                .bin("000000")
                 .build();
     }
 
