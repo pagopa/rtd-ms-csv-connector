@@ -191,45 +191,10 @@ public class PaymentInstrumentRemovalBatchTest {
     }
 
     @Test
-    public void testJob_Ok_NoSkips() {
-        try {
-
-            File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-
-            FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
-
-            PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                    this.getClass().getResource("/test-encrypt-pm").getFile() + "/test-pm-ns.csv",
-                    PGPDecryptUtil.readPublicKey(
-                            this.getClass().getResourceAsStream("/test-encrypt-pm/publicKey.asc")),
-                    false,false);
-
-            textTrxPgpFOS.close();
-
-            JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters());
-            Assert.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
-
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Assert.assertEquals(1,
-                    FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt-pm/**/success")[0].getFile(),
-                            new String[]{"pgp"},false).size());
-            Assert.assertEquals(0,
-                    FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt-pm/**/error")[0].getFile(),
-                            new String[]{"pgp"},false).size());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
-    }
-
-    @Test
     public void testJob_Ok_FileWithSkipsOnLimit() {
         try {
 
-            File testTrxPgp = tempFolder.newFile("test-trx.pgp");
+            File testTrxPgp = tempFolder.newFile("test-pm.pgp");
 
             FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
@@ -264,7 +229,7 @@ public class PaymentInstrumentRemovalBatchTest {
     public void testJob_KO_FileOverSkipLimit() {
         try {
 
-            File testTrxPgp = tempFolder.newFile("test-err-trx.pgp");
+            File testTrxPgp = tempFolder.newFile("test-err-pm.pgp");
 
             FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 

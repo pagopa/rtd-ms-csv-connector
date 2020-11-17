@@ -21,8 +21,6 @@ import java.math.BigDecimal;
  */
 public class InboundTransactionItemProcessorTest extends BaseTest {
 
-
-
     private InboundTransactionItemProcessor inboundTransactionItemProcessor;
 
     @Before

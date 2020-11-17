@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.*;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundPaymentInstrumentFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundPaymentInstrumentLineMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundPaymentInstrument;
@@ -51,6 +52,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -318,6 +321,9 @@ public class PaymentInstrumentRemovalBatch {
      */
     @Bean
     public TaskletStep paymentInstrumentWorkerStep() {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+        String executionDate = OffsetDateTime.now().format(fmt);
+
         return stepBuilderFactory.get("csv-payment-instrument-connector-master-inner-step")
                 .<InboundPaymentInstrument, InboundPaymentInstrument>chunk(chunkSize)
                 .reader(paymentInstrumentItemReader(null))
@@ -328,9 +334,62 @@ public class PaymentInstrumentRemovalBatch {
                 .noSkip(PGPDecryptException.class)
                 .noSkip(FileNotFoundException.class)
                 .skip(Exception.class)
-                .taskExecutor(aymentInstrumentReaderTaskExecutor())
+                .listener(paymentInstrumentReadListener(executionDate))
+                .listener(paymentInstrumentWriterListener(executionDate))
+                .listener(paymentInstrumentProcessListener(executionDate))
+                .listener(transactionStepListener())
+                .taskExecutor(paymentInstrumentReaderTaskExecutor())
                 .build();
     }
+
+    @Bean
+    public PaymentInstrumentReadListener paymentInstrumentReadListener(String executionDate) {
+        PaymentInstrumentReadListener paymentInstrumentReadListener = new PaymentInstrumentReadListener();
+        paymentInstrumentReadListener.setExecutionDate(executionDate);
+        paymentInstrumentReadListener.setErrorTransactionsLogsPath(errorLogsPath);
+        paymentInstrumentReadListener.setEnableOnErrorFileLogging(enableOnReadErrorFileLogging);
+        paymentInstrumentReadListener.setEnableOnErrorLogging(enableOnReadErrorLogging);
+        return paymentInstrumentReadListener;
+    }
+
+    @Bean
+    public PaymentInstrumentWriterListener paymentInstrumentWriterListener(String executionDate) {
+        PaymentInstrumentWriterListener paymentInstrumentWriterListener = new PaymentInstrumentWriterListener();
+        paymentInstrumentWriterListener.setExecutionDate(executionDate);
+        paymentInstrumentWriterListener.setErrorTransactionsLogsPath(errorLogsPath);
+        paymentInstrumentWriterListener.setEnableOnErrorFileLogging(enableOnWriteErrorFileLogging);
+        paymentInstrumentWriterListener.setEnableOnErrorLogging(enableOnWriteErrorLogging);
+        return paymentInstrumentWriterListener;
+    }
+
+    @Bean
+    public PaymentInstrumentProcessListener paymentInstrumentProcessListener(String executionDate) {
+        PaymentInstrumentProcessListener paymentInstrumentProcessListener = new PaymentInstrumentProcessListener();
+        paymentInstrumentProcessListener.setExecutionDate(executionDate);
+        paymentInstrumentProcessListener.setErrorTransactionsLogsPath(errorLogsPath);
+        paymentInstrumentProcessListener.setEnableOnErrorFileLogging(enableOnProcessErrorFileLogging);
+        paymentInstrumentProcessListener.setEnableOnErrorLogging(enableOnProcessErrorLogging);
+        return paymentInstrumentProcessListener;
+    }
+
+    @Bean
+    public TransactionReaderStepListener transactionStepListener() {
+        return new TransactionReaderStepListener();
+    }
+
+    /**
+     *
+     * @return bean configured for usage in the partitioner instance of the job
+     */
+    @Bean
+    public TaskExecutor partitionerTaskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setMaxPoolSize(partitionerMaxPoolSize);
+        taskExecutor.setCorePoolSize(partitionerCorePoolSize);
+        taskExecutor.afterPropertiesSet();
+        return taskExecutor;
+    }
+
 
     /**
      *
@@ -350,7 +409,7 @@ public class PaymentInstrumentRemovalBatch {
      * @return bean configured for usage for chunk reading of a single file
      */
     @Bean
-    public TaskExecutor aymentInstrumentReaderTaskExecutor() {
+    public TaskExecutor paymentInstrumentReaderTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setMaxPoolSize(readerMaxPoolSize);
         taskExecutor.setCorePoolSize(readerCorePoolSize);
