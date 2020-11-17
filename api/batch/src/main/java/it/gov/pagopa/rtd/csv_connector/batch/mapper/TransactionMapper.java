@@ -33,7 +33,7 @@ public class TransactionMapper {
                     DigestUtils.sha256Hex(inboundTransaction.getPan()) :
                     inboundTransaction.getPan()
             );
-            transaction.setMcc("000000");
+            transaction.setMcc("0000");
             transaction.setAmount(BigDecimal.valueOf(inboundTransaction.getAmount())
                     .divide(BigDecimal.valueOf(100L),2, RoundingMode.HALF_EVEN));
         }

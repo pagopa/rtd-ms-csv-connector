@@ -120,7 +120,7 @@ public class TransactionWriterTest extends BaseTest {
                 .correlationId("1")
                 .acquirerId("0")
                 .terminalId("0")
-                .bin("000000")
+                .bin("0000")
                 .build();
     }
 
@@ -140,7 +140,7 @@ public class TransactionWriterTest extends BaseTest {
                 .correlationId("1")
                 .acquirerId("0")
                 .terminalId("0")
-                .bin("000000")
+                .bin("0000")
                 .build();
     }
 
