@@ -70,7 +70,7 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
         FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
         PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                this.getClass().getResource("/test-encrypt").getFile() + "/test-pm.csv",
+                this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
                 PGPDecryptUtil.readPublicKey(
                         this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
                 false,false);
@@ -105,7 +105,7 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
 
         flatFileItemReader.setResource(new UrlResource("file:"+
                 this.getClass().getResource("/test-encrypt")
-                .getFile() + "/test-pm.csv"));
+                .getFile() + "/test-trx.csv"));
         flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
         ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
         flatFileItemReader.update(executionContext);
@@ -128,7 +128,7 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
         FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
 
         PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                this.getClass().getResource("/test-encrypt").getFile() + "/test-pm.csv",
+                this.getClass().getResource("/test-encrypt").getFile() + "/test-trx.csv",
                 PGPDecryptUtil.readPublicKey(
                         this.getClass().getResourceAsStream("/test-encrypt/otherPublicKey.asc")),
                 false,false);

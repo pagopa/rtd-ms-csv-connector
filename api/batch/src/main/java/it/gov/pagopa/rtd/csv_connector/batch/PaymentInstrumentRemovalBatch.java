@@ -117,12 +117,6 @@ public class PaymentInstrumentRemovalBatch {
     private Boolean enableOnWriteErrorFileLogging;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.enableOnWriteErrorLogging}")
     private Boolean enableOnWriteErrorLogging;
-    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.executorPoolSize}")
-    private Integer executorPoolSize;
-    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.applyEncrypt}")
-    private Boolean applyEncrypt;
-    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.publicKeyPath}")
-    private String publicKey;
 
     private DataSource dataSource;
 

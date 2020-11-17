@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.connector.payment_instrument;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,8 @@ public interface PaymentInstrumentConnector {
     @ResponseBody
     void deleteByFiscalCode(@NotBlank @PathVariable("hpan") String hpan,
                             @RequestParam("fiscalCode") String fiscalCode,
-                            @RequestParam("cancellationDate") OffsetDateTime cancellationDate,
+                            @RequestParam("cancellationDate")
+                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime cancellationDate,
                             @RequestHeader("Ocp-Apim-Subscription-Key") String token);
 
 }

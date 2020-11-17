@@ -11,7 +11,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class PaymentInstrumentConnectorServiceImpl implements PaymentInstrumentConnectorService {
+class PaymentInstrumentConnectorServiceImpl implements PaymentInstrumentConnectorService {
 
     private final PaymentInstrumentRestClient paymentInstrumentRestClient;
 

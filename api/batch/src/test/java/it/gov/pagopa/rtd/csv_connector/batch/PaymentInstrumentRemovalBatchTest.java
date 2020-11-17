@@ -25,10 +25,12 @@ import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
@@ -75,6 +77,8 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
         KafkaAutoConfiguration.class,
         SimpleEventRequestTransformer.class,
         SimpleEventResponseTransformer.class,
+        FeignAutoConfiguration.class,
+        HttpMessageConvertersAutoConfiguration.class,
         PaymentInstrumentRemovalBatch.class
 })
 @TestPropertySource(

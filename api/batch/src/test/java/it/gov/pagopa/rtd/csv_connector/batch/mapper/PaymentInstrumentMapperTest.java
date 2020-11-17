@@ -7,6 +7,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class PaymentInstrumentMapperTest {
 
     private PaymentInstrumentMapper paymentInstrumentMapper;
@@ -20,7 +25,7 @@ public class PaymentInstrumentMapperTest {
     @Test
     public void testMapper() {
         PaymentInstrumentData paymentInstrumentData =
-                paymentInstrumentMapper.map(getInboundPaymentInstrument());
+                paymentInstrumentMapper.map(getInboundPaymentInstrument(),"MM/dd/yyyy HH:mm:ss");
         Assert.assertNotNull(paymentInstrumentData);
         Assert.assertEquals(paymentInstrumentData, getPaymentInstrumentData());
     }
@@ -39,7 +44,8 @@ public class PaymentInstrumentMapperTest {
         return PaymentInstrumentData.builder()
                 .fiscalCode("13131")
                 .hpan("pan1")
-                .cancellationDate("03/20/2020 10:50:33")
+                .cancellationDate(ZonedDateTime.parse("03/20/2020 10:50:33", DateTimeFormatter
+                        .ofPattern("MM/dd/yyyy HH:mm:ss").withZone(ZoneId.systemDefault())).toOffsetDateTime())
                 .build();
     }
 

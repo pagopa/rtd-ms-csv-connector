@@ -20,11 +20,13 @@ public class PaymentInstrumentWriter implements ItemWriter<InboundPaymentInstrum
 
     private final PaymentInstrumentConnectorService paymentInstrumentConnectorService;
     private final PaymentInstrumentMapper paymentInstrumentMapper;
+    private String timestampParser;
 
     @Override
     public void write(List<? extends InboundPaymentInstrument> inboundPaymentInstruments) throws Exception {
         paymentInstrumentConnectorService.disablePaymentInstrument(
-                inboundPaymentInstruments.stream().map(paymentInstrumentMapper::map)
+                inboundPaymentInstruments.stream().map(inboundPaymentInstrument ->
+                        paymentInstrumentMapper.map(inboundPaymentInstrument,timestampParser))
                         .collect(Collectors.toList()));
     }
 

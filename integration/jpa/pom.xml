@@ -20,10 +20,12 @@
         <dependency>
             <groupId>it.gov.pagopa.bpd.commons.integration</groupId>
             <artifactId>bpd-commons-integration-jpa</artifactId>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
             <groupId>it.gov.pagopa.bpd.commons.integration</groupId>
             <artifactId>bpd-commons-integration-jpa</artifactId>
+            <version>1.0.2</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

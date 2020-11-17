@@ -7,13 +7,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class PaymentInstrumentRestClientImpl implements PaymentInstrumentRestClient {
 
-    @Value("${rest-client.payment_instrument.api.key}")
+    @Value("${rest-client.payment-instrument.api.key}")
     private String apiKey;
 
     private final PaymentInstrumentConnector paymentInstrumentConnector;
@@ -23,7 +25,7 @@ public class PaymentInstrumentRestClientImpl implements PaymentInstrumentRestCli
         paymentInstrumentConnector.deleteByFiscalCode(
                 paymentInstrumentData.getHpan(),
                 paymentInstrumentData.getFiscalCode(),
-                OffsetDateTime.parse(paymentInstrumentData.getCancellationDate()),
+                paymentInstrumentData.getCancellationDate(),
                 apiKey);
     }
 

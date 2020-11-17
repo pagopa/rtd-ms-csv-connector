@@ -18,6 +18,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 @TestPropertySource(
@@ -55,7 +60,9 @@ public class PaymentInstrumentRestClientImplTest extends BaseFeignRestClientTest
 
     @Test
     public void delete() {
-        restClient.delete(PaymentInstrumentData.builder().hpan("test").fiscalCode("test").cancellationDate("2020-04-09T16:22:45.304Z").build());
+        restClient.delete(PaymentInstrumentData.builder().hpan("test").fiscalCode("test")
+                .cancellationDate(ZonedDateTime.parse("03/20/2020 10:50:33", DateTimeFormatter
+                        .ofPattern("MM/dd/yyyy HH:mm:ss").withZone(ZoneId.systemDefault())).toOffsetDateTime()).build());
     }
 
 
