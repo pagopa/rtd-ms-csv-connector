@@ -120,6 +120,10 @@ public class PaymentInstrumentRemovalBatch {
     private Boolean enableOnWriteErrorFileLogging;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.enableOnWriteErrorLogging}")
     private Boolean enableOnWriteErrorLogging;
+    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.applyEncrypt}")
+    private Boolean applyEncrypt;
+    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.publicKeyPath}")
+    private String publicKey;
 
     private DataSource dataSource;
 
@@ -266,10 +270,13 @@ public class PaymentInstrumentRemovalBatch {
      * @return step instance based on the tasklet to be used for file archival at the end of the reading process
      */
     @Bean
-    public Step archivalTask() {
+    public Step archivalTaskPM() {
         ArchivalTasklet archivalTasklet = new ArchivalTasklet();
         archivalTasklet.setSuccessPath(successArchivePath);
         archivalTasklet.setErrorPath(errorArchivePath);
+        archivalTasklet.setApplyEncrypt(applyEncrypt);
+        archivalTasklet.setErrorDir(errorLogsPath);
+        archivalTasklet.setPublicKeyDir(publicKey);
         return stepBuilderFactory.get("csv-pm-success-archive-step").tasklet(archivalTasklet).build();
     }
 
@@ -280,8 +287,8 @@ public class PaymentInstrumentRemovalBatch {
     public FlowJobBuilder paymentInstrumentJobBuilder() throws Exception {
         return jobBuilderFactory.get("csv-payment-instrument-job")
                 .repository(getJobRepository())
-                .start(paymentInstrumentMasterStep()).on("FAILED").to(archivalTask())
-                .from(paymentInstrumentMasterStep()).on("*").to(archivalTask())
+                .start(paymentInstrumentMasterStep()).on("FAILED").to(archivalTaskPM())
+                .from(paymentInstrumentMasterStep()).on("*").to(archivalTaskPM())
                 .build();
     }
 

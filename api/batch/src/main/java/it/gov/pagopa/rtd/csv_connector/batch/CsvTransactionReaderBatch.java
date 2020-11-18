@@ -305,9 +305,6 @@ public class CsvTransactionReaderBatch {
             createWriterTrackerService();
         }
         TerminationTasklet terminationTasklet = new TerminationTasklet(writerTrackerService);
-        terminationTasklet.setApplyEncrypt(applyEncrypt);
-        terminationTasklet.setErrorDir(errorLogsPath);
-        terminationTasklet.setPublicKeyDir(publicKey);
         return stepBuilderFactory.get("csv-success-termination-step").tasklet(terminationTasklet).build();
     }
 
@@ -321,6 +318,9 @@ public class CsvTransactionReaderBatch {
         ArchivalTasklet archivalTasklet = new ArchivalTasklet();
         archivalTasklet.setSuccessPath(successArchivePath);
         archivalTasklet.setErrorPath(errorArchivePath);
+        archivalTasklet.setApplyEncrypt(applyEncrypt);
+        archivalTasklet.setErrorDir(errorLogsPath);
+        archivalTasklet.setPublicKeyDir(publicKey);
         return stepBuilderFactory.get("csv-success-archive-step").tasklet(archivalTasklet).build();
     }
 

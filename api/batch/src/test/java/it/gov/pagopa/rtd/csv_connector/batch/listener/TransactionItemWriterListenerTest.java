@@ -38,8 +38,8 @@ public class TransactionItemWriterListenerTest {
         transactionItemWriterListener.setEnableOnErrorLogging(true);
         transactionItemWriterListener.setResolver(new PathMatchingResourcePatternResolver());
         transactionItemWriterListener.setErrorTransactionsLogsPath("file:/"+folder.getAbsolutePath());
-        transactionItemWriterListener.onWriteError(new Exception(), Collections.singletonList(InboundTransaction
-                .builder().build()));
+        transactionItemWriterListener.onWriteError(new Exception(), Collections.singletonList(
+                InboundTransaction.builder().filename("test").lineNumber(1).build()));
 
         Assert.assertEquals(1,
                 FileUtils.listFiles(

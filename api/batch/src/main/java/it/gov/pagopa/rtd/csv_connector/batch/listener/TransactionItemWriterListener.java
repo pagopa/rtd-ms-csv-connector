@@ -48,10 +48,14 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
 
             if (enableOnErrorFileLogging) {
                 try {
-
+                    String filename = inboundTransaction.getFilename().replaceAll("\\\\", "/");
+                    String[] fileArr = filename.split("/");
                     File file = new File(
                             resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                    .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
+                                    .concat("/".concat(executionDate))
+                                    + "_WriteErrorRecords_"+fileArr[fileArr.length-1]
+                                    .replaceAll(".csv","")
+                                    .replaceAll(".pgp","")+".csv");
                     FileUtils.writeStringToFile(
                             file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
 
@@ -83,7 +87,9 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
                 File file = new File(
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                                 .concat("/".concat(executionDate))
-                                + "_WriteErrorRecords_"+fileArr[fileArr.length-1]+".csv");
+                                + "_WriteErrorRecords_"+fileArr[fileArr.length-1]
+                                .replaceAll(".csv","")
+                                .replaceAll(".pgp","")+".csv");
                 FileUtils.writeStringToFile(
                         file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
 

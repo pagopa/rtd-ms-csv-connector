@@ -50,7 +50,9 @@ public class TransactionItemProcessListener implements ItemProcessListener<Inbou
                 File file = new File(
                         resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
                                 .concat("/".concat(executionDate))
-                                + "_ValidationErrorRecords_"+fileArr[fileArr.length-1]+".csv");
+                                + "_ValidationErrorRecords_"+fileArr[fileArr.length-1]
+                                .replaceAll(".csv","")
+                                .replaceAll(".pgp","")+".csv");
                 FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
             } catch (IOException e) {
                 log.error(e.getMessage(), e);

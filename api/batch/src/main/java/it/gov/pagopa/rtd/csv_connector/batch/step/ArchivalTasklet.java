@@ -1,6 +1,8 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
+import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -12,10 +14,13 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,6 +37,10 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
 
     private String successPath;
     private String errorPath;
+    private String errorDir;
+    private String publicKeyDir;
+    private Boolean applyEncrypt;
+
 
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
@@ -55,6 +64,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
      * @return Status of the tasklet execution
      * @throws IOException
      */
+    @SneakyThrows
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws IOException {
         Collection<StepExecution> stepExecutions = chunkContext.getStepContext().getStepExecution().getJobExecution()
@@ -93,6 +103,33 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
                     throw e;
+                }
+            }
+        }
+
+        if (applyEncrypt) {
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources(errorDir.concat("/*.csv"));
+            Resource publicKey = resolver.getResource(publicKeyDir);
+            for (Resource resource : resources) {
+                FileInputStream publicKeyIS = null;
+                FileOutputStream outputFOS = null;
+                try {
+                    resource.getFilename();
+                    publicKeyIS = new FileInputStream(publicKey.getFile());
+                    outputFOS = new FileOutputStream(resource.getFile().getAbsolutePath().concat(".pgp"));
+                    PGPDecryptUtil.encryptFile(outputFOS,
+                            resource.getFile().getAbsolutePath(),
+                            PGPDecryptUtil.readPublicKey(publicKeyIS),
+                            false, true);
+                } finally {
+                    if (publicKeyIS != null) {
+                        publicKeyIS.close();
+                    }
+                    if (outputFOS != null) {
+                        outputFOS.close();
+                    }
+                    FileUtils.forceDelete(resource.getFile());
                 }
             }
         }

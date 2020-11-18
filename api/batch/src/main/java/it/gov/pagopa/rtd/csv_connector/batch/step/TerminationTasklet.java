@@ -23,9 +23,6 @@ import java.util.concurrent.CountDownLatch;
 public class TerminationTasklet implements Tasklet, InitializingBean {
 
     private final WriterTrackerService writerTrackerService;
-    private String errorDir;
-    private String publicKeyDir;
-    private Boolean applyEncrypt;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -40,34 +37,6 @@ public class TerminationTasklet implements Tasklet, InitializingBean {
                 countDownLatch.await();
             }
         }
-
-        if (applyEncrypt) {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] resources = resolver.getResources(errorDir.concat("/*.csv"));
-            Resource publicKey = resolver.getResource(publicKeyDir);
-            for (Resource resource : resources) {
-                FileInputStream publicKeyIS = null;
-                FileOutputStream outputFOS = null;
-                try {
-                    resource.getFilename();
-                    publicKeyIS = new FileInputStream(publicKey.getFile());
-                    outputFOS = new FileOutputStream(resource.getFile().getAbsolutePath().concat(".pgp"));
-                    PGPDecryptUtil.encryptFile(outputFOS,
-                            resource.getFile().getAbsolutePath(),
-                            PGPDecryptUtil.readPublicKey(publicKeyIS),
-                            false, true);
-                } finally {
-                    if (publicKeyIS != null) {
-                        publicKeyIS.close();
-                    }
-                    if (outputFOS != null) {
-                        outputFOS.close();
-                    }
-                    FileUtils.forceDelete(resource.getFile());
-                }
-            }
-        }
-
 
         return RepeatStatus.FINISHED;
     }
