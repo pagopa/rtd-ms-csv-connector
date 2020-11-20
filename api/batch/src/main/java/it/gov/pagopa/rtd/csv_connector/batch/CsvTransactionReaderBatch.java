@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,6 +80,12 @@ public class CsvTransactionReaderBatch {
     private final BeanFactory beanFactory;
     private AtomicInteger batchRunCounter = new AtomicInteger(0);
 
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.balancer.enabled}")
+    private Boolean enableBalancer;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.balancer.input}")
+    private String balancerInputPath;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.balancer.output}")
+    private List<String> balancerOutputPaths;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.classpath}")
     private String directoryPath;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.successArchivePath}")
@@ -166,10 +173,12 @@ public class CsvTransactionReaderBatch {
         if (writerTrackerService == null) {
             createWriterTrackerService();
         }
+
         transactionJobLauncher().run(
                 job(), new JobParametersBuilder()
                         .addDate("startDateTime", startDate)
                         .toJobParameters());
+
         clearWriterTrackerService();
 
         Date endDate = new Date();
@@ -324,6 +333,15 @@ public class CsvTransactionReaderBatch {
         return stepBuilderFactory.get("csv-success-archive-step").tasklet(archivalTasklet).build();
     }
 
+    @Bean
+    public Step balancerTask() {
+        BalancerTasklet balancerTasklet = new BalancerTasklet();
+        balancerTasklet.setIsEnabled(enableBalancer);
+        balancerTasklet.setInputPath(balancerInputPath);
+        balancerTasklet.setOutputPaths(balancerOutputPaths);
+        return stepBuilderFactory.get("csv-balancer-step").tasklet(balancerTasklet).build();
+    }
+
     /**
      *
      * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
@@ -331,7 +349,8 @@ public class CsvTransactionReaderBatch {
     public FlowJobBuilder transactionJobBuilder() throws Exception {
         return jobBuilderFactory.get("csv-transaction-job")
                 .repository(getJobRepository())
-                .start(masterStep()).on("FAILED").to(archivalTask())
+                .start(balancerTask()).on("*")
+                .to(masterStep()).on("FAILED").to(archivalTask())
                 .from(masterStep()).on("*").to(terminationTask()).on("*").to(archivalTask())
                 .build();
     }
@@ -462,6 +481,7 @@ public class CsvTransactionReaderBatch {
         return taskExecutor;
     }
 
+
     /**
      *
      * @return instance of a job for transaction processing
@@ -469,7 +489,7 @@ public class CsvTransactionReaderBatch {
     @SneakyThrows
     @Bean
     public Job job() {
-       return transactionJobBuilder().build();
+        return transactionJobBuilder().build();
     }
 
     /**
