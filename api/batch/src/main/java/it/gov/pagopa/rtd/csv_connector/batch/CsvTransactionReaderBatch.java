@@ -80,12 +80,8 @@ public class CsvTransactionReaderBatch {
     private final BeanFactory beanFactory;
     private AtomicInteger batchRunCounter = new AtomicInteger(0);
 
-    @Value("${batchConfiguration.CsvTransactionReaderBatch.balancer.enabled}")
-    private Boolean enableBalancer;
-    @Value("${batchConfiguration.CsvTransactionReaderBatch.balancer.input}")
-    private String balancerInputPath;
-    @Value("${batchConfiguration.CsvTransactionReaderBatch.balancer.output}")
-    private List<String> balancerOutputPaths;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.isolationForCreate}")
+    private String isolationForCreate;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.classpath}")
     private String directoryPath;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.successArchivePath}")
@@ -210,6 +206,7 @@ public class CsvTransactionReaderBatch {
             jobRepositoryFactoryBean.setTransactionManager( getTransactionManager());
             jobRepositoryFactoryBean.setTablePrefix(tablePrefix);
             jobRepositoryFactoryBean.setDataSource(dataSource);
+            jobRepositoryFactoryBean.setIsolationLevelForCreate(isolationForCreate);
             jobRepositoryFactoryBean.afterPropertiesSet();
             return jobRepositoryFactoryBean.getObject();
     }
@@ -333,15 +330,6 @@ public class CsvTransactionReaderBatch {
         return stepBuilderFactory.get("csv-success-archive-step").tasklet(archivalTasklet).build();
     }
 
-    @Bean
-    public Step balancerTask() {
-        BalancerTasklet balancerTasklet = new BalancerTasklet();
-        balancerTasklet.setIsEnabled(enableBalancer);
-        balancerTasklet.setInputPath(balancerInputPath);
-        balancerTasklet.setOutputPaths(balancerOutputPaths);
-        return stepBuilderFactory.get("csv-balancer-step").tasklet(balancerTasklet).build();
-    }
-
     /**
      *
      * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
@@ -349,8 +337,7 @@ public class CsvTransactionReaderBatch {
     public FlowJobBuilder transactionJobBuilder() throws Exception {
         return jobBuilderFactory.get("csv-transaction-job")
                 .repository(getJobRepository())
-                .start(balancerTask()).on("*")
-                .to(masterStep()).on("FAILED").to(archivalTask())
+                .start(masterStep()).on("FAILED").to(archivalTask())
                 .from(masterStep()).on("*").to(terminationTask()).on("*").to(archivalTask())
                 .build();
     }

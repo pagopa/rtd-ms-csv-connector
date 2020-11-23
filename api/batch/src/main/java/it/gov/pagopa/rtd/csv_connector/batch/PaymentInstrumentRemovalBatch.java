@@ -74,6 +74,8 @@ public class PaymentInstrumentRemovalBatch {
     private final StepBuilderFactory stepBuilderFactory;
     private final BeanFactory beanFactory;
 
+    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.isolationForCreate}")
+    private String isolationForCreate;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.classpath}")
     private String directoryPath;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.successArchivePath}")
@@ -175,6 +177,7 @@ public class PaymentInstrumentRemovalBatch {
         jobRepositoryFactoryBean.setTransactionManager( getTransactionManager());
         jobRepositoryFactoryBean.setTablePrefix(tablePrefix);
         jobRepositoryFactoryBean.setDataSource(dataSource);
+        jobRepositoryFactoryBean.setIsolationLevelForCreate(isolationForCreate);
         jobRepositoryFactoryBean.afterPropertiesSet();
         return jobRepositoryFactoryBean.getObject();
     }
@@ -383,20 +386,6 @@ public class PaymentInstrumentRemovalBatch {
     public TransactionReaderStepListener transactionStepListener() {
         return new TransactionReaderStepListener();
     }
-
-    /**
-     *
-     * @return bean configured for usage in the partitioner instance of the job
-     */
-    @Bean
-    public TaskExecutor partitionerTaskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(partitionerMaxPoolSize);
-        taskExecutor.setCorePoolSize(partitionerCorePoolSize);
-        taskExecutor.afterPropertiesSet();
-        return taskExecutor;
-    }
-
 
     /**
      *
