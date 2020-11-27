@@ -265,8 +265,12 @@ public class PaymentInstrumentRemovalBatch {
      */
     @Bean
     @StepScope
-    public ItemWriter<InboundPaymentInstrument> paymentInstrumentItemWriter() {
-        return beanFactory.getBean(PaymentInstrumentWriter.class);
+    public ItemWriter<InboundPaymentInstrument> paymentInstrumentItemWriter(
+            PaymentInstrumentWriterListener paymentInstrumentWriterListener) {
+        PaymentInstrumentWriter paymentInstrumentWriter = beanFactory.getBean(PaymentInstrumentWriter.class);
+        paymentInstrumentWriter.setPaymentInstrumentWriterListener(paymentInstrumentWriterListener);
+        paymentInstrumentWriter.setTimestampParser(timestampPattern);
+        return paymentInstrumentWriter;
     }
 
 
@@ -340,13 +344,12 @@ public class PaymentInstrumentRemovalBatch {
                 .<InboundPaymentInstrument, InboundPaymentInstrument>chunk(chunkSize)
                 .reader(paymentInstrumentItemReader(null))
                 .processor(paymentInstrumentItemProcessor())
-                .writer(paymentInstrumentItemWriter())
+                .writer(paymentInstrumentItemWriter(paymentInstrumentWriterListener(executionDate)))
                 .faultTolerant()
                 .skipLimit(skipLimit)
                 .noSkip(Exception.class)
                 .skip(FeignException.class)
                 .listener(paymentInstrumentReadListener(executionDate))
-                .listener(paymentInstrumentWriterListener(executionDate))
                 .listener(paymentInstrumentProcessListener(executionDate))
                 .listener(transactionStepListener())
                 .taskExecutor(paymentInstrumentReaderTaskExecutor())

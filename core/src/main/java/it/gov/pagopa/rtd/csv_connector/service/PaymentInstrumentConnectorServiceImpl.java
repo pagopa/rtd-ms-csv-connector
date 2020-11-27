@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -15,8 +13,8 @@ class PaymentInstrumentConnectorServiceImpl implements PaymentInstrumentConnecto
 
     private final PaymentInstrumentRestClient paymentInstrumentRestClient;
 
-    public void disablePaymentInstrument(List<PaymentInstrumentData> paymentInstrumentRequests) {
-        paymentInstrumentRequests.forEach(paymentInstrumentRestClient::delete);
+    public void disablePaymentInstrument(PaymentInstrumentData paymentInstrumentData) {
+        paymentInstrumentRestClient.delete(paymentInstrumentData);
     }
 
 }

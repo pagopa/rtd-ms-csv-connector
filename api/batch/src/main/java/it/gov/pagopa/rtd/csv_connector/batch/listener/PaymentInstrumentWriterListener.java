@@ -67,6 +67,36 @@ public class PaymentInstrumentWriterListener implements ItemWriteListener<Inboun
 
     }
 
+    public void onWriteError(Exception throwable, InboundPaymentInstrument inboundPaymentInstrument) {
+
+        if (enableOnErrorLogging) {
+            log.error("Error during PI record writing - {}, line: " +
+                            "{}, filename: {}",
+                    throwable.getMessage(),
+                    inboundPaymentInstrument.getLineNumber(),
+                    inboundPaymentInstrument.getFilename());
+        }
+
+        if (enableOnErrorFileLogging) {
+            try {
+                String filename = inboundPaymentInstrument.getFilename().replaceAll("\\\\", "/");
+                String[] fileArr = filename.split("/");
+                File file = new File(
+                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                .concat("/".concat(executionDate))
+                                + "_WriteErrorRecords_"+fileArr[fileArr.length-1]
+                                .replaceAll(".csv","")
+                                .replaceAll(".pgp","")+".csv");
+                FileUtils.writeStringToFile(
+                        file, buildCsv(inboundPaymentInstrument), Charset.defaultCharset(), true);
+
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+    }
+
     private String buildCsv(InboundPaymentInstrument inboundPaymentInstrument) {
         return (inboundPaymentInstrument.getFiscalCode() != null ? inboundPaymentInstrument.getFiscalCode() : "").concat(";")
                 .concat(inboundPaymentInstrument.getHpan() != null ? inboundPaymentInstrument.getHpan() : "").concat(";")

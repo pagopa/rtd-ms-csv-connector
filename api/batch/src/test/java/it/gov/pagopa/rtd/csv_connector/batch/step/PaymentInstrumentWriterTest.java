@@ -30,7 +30,7 @@ public class PaymentInstrumentWriterTest extends BaseTest {
     @Before
     public void init() {
         Mockito.reset(paymentInstrumentConnectorServiceMock, paymentInstrumentMapper);
-        BDDMockito.doNothing().when(paymentInstrumentConnectorServiceMock).disablePaymentInstrument(Mockito.anyList());
+        BDDMockito.doNothing().when(paymentInstrumentConnectorServiceMock).disablePaymentInstrument(Mockito.any());
         paymentInstrumentWriter = new PaymentInstrumentWriter(
                 paymentInstrumentConnectorServiceMock, paymentInstrumentMapper);
         paymentInstrumentWriter.setTimestampParser("MM/dd/yyyy HH:mm:ss");

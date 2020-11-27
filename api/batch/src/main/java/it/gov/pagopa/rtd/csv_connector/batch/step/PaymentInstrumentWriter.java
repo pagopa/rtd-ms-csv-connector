@@ -1,7 +1,10 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
+import it.gov.pagopa.rtd.csv_connector.batch.listener.PaymentInstrumentWriterListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.PaymentInstrumentMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundPaymentInstrument;
+import it.gov.pagopa.rtd.csv_connector.connector.payment_instrument.model.PaymentInstrumentData;
 import it.gov.pagopa.rtd.csv_connector.service.PaymentInstrumentConnectorService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +23,21 @@ public class PaymentInstrumentWriter implements ItemWriter<InboundPaymentInstrum
 
     private final PaymentInstrumentConnectorService paymentInstrumentConnectorService;
     private final PaymentInstrumentMapper paymentInstrumentMapper;
+    private PaymentInstrumentWriterListener paymentInstrumentWriterListener;
     private String timestampParser;
 
     @Override
-    public void write(List<? extends InboundPaymentInstrument> inboundPaymentInstruments) throws Exception {
-        paymentInstrumentConnectorService.disablePaymentInstrument(
-                inboundPaymentInstruments.stream().map(inboundPaymentInstrument ->
-                        paymentInstrumentMapper.map(inboundPaymentInstrument,timestampParser))
-                        .collect(Collectors.toList()));
+    public void write(List<? extends InboundPaymentInstrument> inboundPaymentInstruments) {
+        for (InboundPaymentInstrument inboundPaymentInstrument : inboundPaymentInstruments) {
+            try {
+                PaymentInstrumentData paymentInstrumentData =
+                        paymentInstrumentMapper.map(inboundPaymentInstrument,timestampParser);
+                paymentInstrumentConnectorService.disablePaymentInstrument(paymentInstrumentData);
+            } catch (Exception e) {
+                paymentInstrumentWriterListener.onWriteError(e, inboundPaymentInstrument);
+                throw e;
+            }
+        }
     }
 
 }
