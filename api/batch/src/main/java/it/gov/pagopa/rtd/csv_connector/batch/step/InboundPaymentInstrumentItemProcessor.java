@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -25,6 +26,7 @@ public class InboundPaymentInstrumentItemProcessor
 
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
+    private Set<InboundPaymentInstrument> inboundPaymentInstruments = new HashSet<>();
 
     /**
      * Validates the input {@link InboundPaymentInstrument}, and maps it to an instance of Transaction
@@ -41,6 +43,12 @@ public class InboundPaymentInstrumentItemProcessor
         if (constraintViolations.size() > 0) {
             throw new ConstraintViolationException(constraintViolations);
         }
+
+        if(inboundPaymentInstruments.contains(inboundPaymentInstrument)) {
+            return null;
+        }
+
+        inboundPaymentInstruments.add(inboundPaymentInstrument);
 
         return inboundPaymentInstrument;
 
