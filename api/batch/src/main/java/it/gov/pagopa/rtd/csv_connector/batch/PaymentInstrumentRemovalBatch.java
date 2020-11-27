@@ -1,7 +1,10 @@
 package it.gov.pagopa.rtd.csv_connector.batch;
 
-import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
-import it.gov.pagopa.rtd.csv_connector.batch.listener.*;
+import feign.FeignException;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.PaymentInstrumentProcessListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.PaymentInstrumentReadListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.PaymentInstrumentWriterListener;
+import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionReaderStepListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundPaymentInstrumentFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundPaymentInstrumentLineMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundPaymentInstrument;
@@ -50,7 +53,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -341,9 +343,8 @@ public class PaymentInstrumentRemovalBatch {
                 .writer(paymentInstrumentItemWriter())
                 .faultTolerant()
                 .skipLimit(skipLimit)
-                .noSkip(PGPDecryptException.class)
-                .noSkip(FileNotFoundException.class)
-                .skip(Exception.class)
+                .noSkip(Exception.class)
+                .skip(FeignException.class)
                 .listener(paymentInstrumentReadListener(executionDate))
                 .listener(paymentInstrumentWriterListener(executionDate))
                 .listener(paymentInstrumentProcessListener(executionDate))
