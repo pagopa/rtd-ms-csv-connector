@@ -32,6 +32,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
     private Executor executor;
     private final TransactionMapper mapper;
     private Boolean applyHashing;
+    private Integer checkpointFrequency;
 
     /**
      * Implementation of the {@link ItemWriter} write method, used for {@link Transaction} as the processed class
@@ -44,6 +45,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
 
         CountDownLatch countDownLatch = new CountDownLatch(inboundTransactions.size());
         writerTrackerService.addCountDownLatch(countDownLatch);
+        Integer trackerSize = writerTrackerService.getCountDownLatches().size();
 
         inboundTransactions.forEach(inboundTransaction -> executor.execute(() -> {
             try {
@@ -54,6 +56,10 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             }
             countDownLatch.countDown();
         }));
+
+        if (trackerSize % checkpointFrequency == 0) {
+            countDownLatch.await();
+        }
 
     }
 

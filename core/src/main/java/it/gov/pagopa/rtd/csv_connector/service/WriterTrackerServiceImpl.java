@@ -20,7 +20,7 @@ public class WriterTrackerServiceImpl implements WriterTrackerService {
     }
 
     @Override
-    public List<CountDownLatch> getCountDownLatches() {
+    public synchronized List<CountDownLatch> getCountDownLatches() {
         return countDownLatches;
     }
 

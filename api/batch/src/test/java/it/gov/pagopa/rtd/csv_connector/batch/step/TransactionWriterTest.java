@@ -50,6 +50,7 @@ public class TransactionWriterTest extends BaseTest {
         transactionWriter.setTransactionItemWriterListener(transactionItemWriterListenerMock);
         transactionWriter.setExecutor(Executors.newSingleThreadExecutor());
         transactionWriter.setApplyHashing(true);
+        transactionWriter.setCheckpointFrequency(3);
         BDDMockito.doNothing().when(csvTransactionPublisherServiceMock)
                 .publishTransactionEvent(Mockito.any(Transaction.class));
         BDDMockito.doNothing().when(writerTrackerServiceMock)

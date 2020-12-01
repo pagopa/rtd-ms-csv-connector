@@ -132,6 +132,8 @@ public class CsvTransactionReaderBatch {
     private Boolean enableOnWriteErrorLogging;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.executorPoolSize}")
     private Integer executorPoolSize;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.checkpointFrequency}")
+    private Integer checkpointFrequency;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.applyEncrypt}")
     private Boolean applyEncrypt;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.publicKeyPath}")
@@ -298,6 +300,7 @@ public class CsvTransactionReaderBatch {
         transactionWriter.setTransactionItemWriterListener(writerListener);
         transactionWriter.setExecutor(writerExecutor());
         transactionWriter.setApplyHashing(applyHashing);
+        transactionWriter.setCheckpointFrequency(checkpointFrequency);
         return transactionWriter;
     }
 
