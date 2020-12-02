@@ -19,6 +19,10 @@ info:
     description: "@project.description@"
     version: "@project.version@"
 
+management:
+  endpoint:
+    shutdown:
+      enabled: ${ACTUATOR_SHUTDOWN_ENABLED:false}
 
 error-manager:
   enabled: true

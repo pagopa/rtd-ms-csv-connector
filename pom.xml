@@ -4,7 +4,7 @@
 
     <parent>
         <groupId>it.gov.pagopa.bpd.ms</groupId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <artifactId>bpd-ms-starter-parent</artifactId>
     </parent>
 
@@ -43,29 +43,29 @@
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.api</groupId>
                 <artifactId>bpd-commons-api-rest</artifactId>
-                <version>1.0.2</version>
+                <version>1.0.4</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.integration</groupId>
                 <artifactId>bpd-commons-integration-jpa</artifactId>
-                <version>1.0.2</version>
+                <version>1.0.4</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.integration</groupId>
                 <artifactId>bpd-commons-integration-rest</artifactId>
-                <version>1.0.2</version>
+                <version>1.0.4</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.integration</groupId>
                 <artifactId>bpd-commons-integration-rest</artifactId>
-                <version>1.0.2</version>
+                <version>1.0.4</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.integration</groupId>
                 <artifactId>bpd-commons-integration-jpa</artifactId>
-                <version>1.0.2</version>
+                <version>1.0.4</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
