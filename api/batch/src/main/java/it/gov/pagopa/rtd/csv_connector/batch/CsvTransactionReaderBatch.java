@@ -80,6 +80,8 @@ public class CsvTransactionReaderBatch {
     private final BeanFactory beanFactory;
     private AtomicInteger batchRunCounter = new AtomicInteger(0);
 
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.job.name}")
+    private String jobName;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.isolationForCreate}")
     private String isolationForCreate;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.classpath}")
@@ -134,6 +136,8 @@ public class CsvTransactionReaderBatch {
     private Integer executorPoolSize;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.checkpointFrequency}")
     private Integer checkpointFrequency;
+    @Value("${batchConfiguration.CsvTransactionReaderBatch.enableCheckpointFrequency}")
+    private Boolean enableCheckpointFrequency;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.applyEncrypt}")
     private Boolean applyEncrypt;
     @Value("${batchConfiguration.CsvTransactionReaderBatch.publicKeyPath}")
@@ -301,6 +305,7 @@ public class CsvTransactionReaderBatch {
         transactionWriter.setExecutor(writerExecutor());
         transactionWriter.setApplyHashing(applyHashing);
         transactionWriter.setCheckpointFrequency(checkpointFrequency);
+        transactionWriter.setEnableCheckpointFrequency(enableCheckpointFrequency);
         return transactionWriter;
     }
 
@@ -338,7 +343,7 @@ public class CsvTransactionReaderBatch {
      * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
      */
     public FlowJobBuilder transactionJobBuilder() throws Exception {
-        return jobBuilderFactory.get("csv-transaction-job")
+        return jobBuilderFactory.get(jobName)
                 .repository(getJobRepository())
                 .start(masterStep()).on("FAILED").to(archivalTask())
                 .from(masterStep()).on("*").to(terminationTask()).on("*").to(archivalTask())
@@ -443,8 +448,8 @@ public class CsvTransactionReaderBatch {
     @Bean
     public TaskExecutor partitionerTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(partitionerMaxPoolSize);
-        taskExecutor.setCorePoolSize(partitionerCorePoolSize);
+        taskExecutor.setMaxPoolSize(enableCheckpointFrequency? 1 : partitionerMaxPoolSize);
+        taskExecutor.setCorePoolSize(enableCheckpointFrequency? 1: partitionerCorePoolSize);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
     }

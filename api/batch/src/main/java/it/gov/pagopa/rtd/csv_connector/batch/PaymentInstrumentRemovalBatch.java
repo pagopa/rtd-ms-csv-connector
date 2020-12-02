@@ -76,6 +76,8 @@ public class PaymentInstrumentRemovalBatch {
     private final StepBuilderFactory stepBuilderFactory;
     private final BeanFactory beanFactory;
 
+    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.job.name}")
+    private String jobName;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.isolationForCreate}")
     private String isolationForCreate;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.classpath}")
@@ -294,7 +296,7 @@ public class PaymentInstrumentRemovalBatch {
      * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
      */
     public FlowJobBuilder paymentInstrumentJobBuilder() throws Exception {
-        return jobBuilderFactory.get("csv-payment-instrument-job")
+        return jobBuilderFactory.get(jobName)
                 .repository(getJobRepository())
                 .start(paymentInstrumentMasterStep()).on("FAILED").to(archivalTaskPM())
                 .from(paymentInstrumentMasterStep()).on("*").to(archivalTaskPM())

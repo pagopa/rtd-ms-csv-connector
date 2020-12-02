@@ -32,6 +32,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
     private Executor executor;
     private final TransactionMapper mapper;
     private Boolean applyHashing;
+    private Boolean enableCheckpointFrequency;
     private Integer checkpointFrequency;
 
     /**
@@ -57,7 +58,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             countDownLatch.countDown();
         }));
 
-        if (trackerSize % checkpointFrequency == 0) {
+        if (enableCheckpointFrequency && trackerSize % checkpointFrequency == 0) {
             countDownLatch.await();
         }
 

@@ -53,6 +53,8 @@ public class CsvTransactionBalancerBatch {
     private final BeanFactory beanFactory;
     private AtomicInteger batchRunCounter = new AtomicInteger(0);
 
+    @Value("${batchConfiguration.CsvTransactionBalancerBatch.job.name}")
+    private String jobName;
     @Value("${batchConfiguration.CsvTransactionBalancerBatch.isolationForCreate}")
     private String isolationForCreate;
     @Value("${batchConfiguration.CsvTransactionBalancerBatch.balancer.enabled}")
@@ -145,7 +147,7 @@ public class CsvTransactionBalancerBatch {
      * @return instance of the job to process and archive .pgp files containing Transaction data in csv format
      */
     public FlowJobBuilder balancerJobBuilder() throws Exception {
-        return jobBuilderFactory.get("csv-transaction-balancer-job")
+        return jobBuilderFactory.get(jobName)
                 .repository(getJobRepository())
                 .start(balancerTask()).on("*").end()
                 .build();
