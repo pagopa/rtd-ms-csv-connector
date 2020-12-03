@@ -55,7 +55,7 @@ public class TransactionWriterTest extends BaseTest {
         BDDMockito.doNothing().when(csvTransactionPublisherServiceMock)
                 .publishTransactionEvent(Mockito.any(Transaction.class));
         BDDMockito.doNothing().when(writerTrackerServiceMock)
-                .addCountDownLatch(Mockito.any());
+                .addCountDownLatch(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Rule

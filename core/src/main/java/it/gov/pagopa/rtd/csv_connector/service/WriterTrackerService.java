@@ -5,7 +5,8 @@ import java.util.concurrent.CountDownLatch;
 
 public interface WriterTrackerService {
 
-    void addCountDownLatch(CountDownLatch countDownLatch);
+    void addCountDownLatch(
+            CountDownLatch countDownLatch, Boolean enableCheckpointFrequency, Integer checkpointFrequency);
 
     List<CountDownLatch> getCountDownLatches();
 

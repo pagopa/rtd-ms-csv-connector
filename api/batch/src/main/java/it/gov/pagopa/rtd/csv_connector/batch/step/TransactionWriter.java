@@ -45,7 +45,6 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
     public void write(List<? extends InboundTransaction> inboundTransactions) throws Exception {
 
         CountDownLatch countDownLatch = new CountDownLatch(inboundTransactions.size());
-        writerTrackerService.addCountDownLatch(countDownLatch);
         Integer trackerSize = writerTrackerService.getCountDownLatches().size();
 
         inboundTransactions.forEach(inboundTransaction -> executor.execute(() -> {
@@ -58,9 +57,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             countDownLatch.countDown();
         }));
 
-        if (enableCheckpointFrequency && trackerSize % checkpointFrequency == 0) {
-            countDownLatch.await();
-        }
+        writerTrackerService.addCountDownLatch(countDownLatch,enableCheckpointFrequency,checkpointFrequency);
 
     }
 

@@ -58,6 +58,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -145,6 +146,7 @@ public class CsvTransactionReaderBatch {
 
     private DataSource dataSource;
     private WriterTrackerService writerTrackerService;
+    private ExecutorService executorService;
 
     public void createWriterTrackerService() {
         this.writerTrackerService = writerTrackerService();
@@ -302,8 +304,8 @@ public class CsvTransactionReaderBatch {
     public ItemWriter<InboundTransaction> getItemWriter(TransactionItemWriterListener writerListener) {
         TransactionWriter transactionWriter = beanFactory.getBean(TransactionWriter.class, writerTrackerService);
         transactionWriter.setTransactionItemWriterListener(writerListener);
-        transactionWriter.setExecutor(writerExecutor());
         transactionWriter.setApplyHashing(applyHashing);
+        transactionWriter.setExecutor(writerExecutor());
         transactionWriter.setCheckpointFrequency(checkpointFrequency);
         transactionWriter.setEnableCheckpointFrequency(enableCheckpointFrequency);
         return transactionWriter;
@@ -448,8 +450,8 @@ public class CsvTransactionReaderBatch {
     @Bean
     public TaskExecutor partitionerTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(enableCheckpointFrequency? 1 : partitionerMaxPoolSize);
-        taskExecutor.setCorePoolSize(enableCheckpointFrequency? 1: partitionerCorePoolSize);
+        taskExecutor.setMaxPoolSize(partitionerMaxPoolSize);
+        taskExecutor.setCorePoolSize(partitionerCorePoolSize);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
     }
@@ -460,14 +462,16 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     public Executor writerExecutor() {
-        return Executors.newFixedThreadPool(executorPoolSize);
+        if (this.executorService == null) {
+            executorService =  Executors.newFixedThreadPool(executorPoolSize);
+        }
+        return executorService;
     }
 
     /**
      *
      * @return bean configured for usage for chunk reading of a single file
      */
-    @Bean
     public TaskExecutor readerTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setMaxPoolSize(readerMaxPoolSize);

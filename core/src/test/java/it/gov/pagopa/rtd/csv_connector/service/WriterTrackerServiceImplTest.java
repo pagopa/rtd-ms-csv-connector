@@ -13,7 +13,7 @@ public class WriterTrackerServiceImplTest extends BaseTest {
     public void testWriter() {
         ArrayList<CountDownLatch> countDownLatchArrayList = new ArrayList<>();
         WriterTrackerServiceImpl writerTrackerService = new WriterTrackerServiceImpl(countDownLatchArrayList);
-        writerTrackerService.addCountDownLatch(new CountDownLatch(1));
+        writerTrackerService.addCountDownLatch(new CountDownLatch(1),false,1);
         Assert.assertEquals(1,writerTrackerService.getCountDownLatches().size());
         writerTrackerService.clearAll();
         Assert.assertEquals(0,writerTrackerService.getCountDownLatches().size());
