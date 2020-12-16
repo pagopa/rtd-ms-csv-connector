@@ -1,5 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
+import eu.sia.meda.core.interceptors.BaseContextHolder;
+import eu.sia.meda.core.model.ApplicationContext;
 import it.gov.pagopa.rtd.csv_connector.batch.listener.TransactionItemWriterListener;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.TransactionMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
@@ -26,6 +28,8 @@ import java.util.concurrent.Executor;
 @Component
 public class TransactionWriter implements ItemWriter<InboundTransaction> {
 
+    private static final String BATCH_CSV_CONNECTOR_NAME = "rtd-ms-csv-connector";
+
     private final WriterTrackerService writerTrackerService;
     private final CsvTransactionPublisherService csvTransactionPublisherService;
     private TransactionItemWriterListener transactionItemWriterListener;
@@ -49,6 +53,9 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
 
         inboundTransactions.forEach(inboundTransaction -> executor.execute(() -> {
             try {
+                ApplicationContext applicationContext = BaseContextHolder.getApplicationContext();
+                applicationContext.setUserId(BATCH_CSV_CONNECTOR_NAME);
+                applicationContext.setRequestId(String.format("%s-%d", inboundTransaction.getFilename(), inboundTransaction.getLineNumber()));
                 Transaction transaction = mapper.map(inboundTransaction, applyHashing);
                 csvTransactionPublisherService.publishTransactionEvent(transaction);
             } catch (Exception e) {
