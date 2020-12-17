@@ -55,7 +55,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             try {
                 ApplicationContext applicationContext = BaseContextHolder.getApplicationContext();
                 applicationContext.setUserId(BATCH_CSV_CONNECTOR_NAME);
-                applicationContext.setRequestId(String.format("%s-%d", inboundTransaction.getFilename(), inboundTransaction.getLineNumber()));
+                applicationContext.setRequestId(String.format("%s:%d", inboundTransaction.getFilename(), inboundTransaction.getLineNumber()));
                 Transaction transaction = mapper.map(inboundTransaction, applyHashing);
                 csvTransactionPublisherService.publishTransactionEvent(transaction);
             } catch (Exception e) {
