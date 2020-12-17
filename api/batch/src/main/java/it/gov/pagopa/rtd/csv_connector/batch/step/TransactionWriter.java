@@ -41,8 +41,8 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
 
     /**
      * Implementation of the {@link ItemWriter} write method, used for {@link Transaction} as the processed class
-     * @param inboundTransactions
-     *           list of {@link Transaction} from the process phase of a reader to be sent on an outbound Kafka channel
+     *
+     * @param inboundTransactions list of {@link Transaction} from the process phase of a reader to be sent on an outbound Kafka channel
      * @throws Exception
      */
     @Override
@@ -55,7 +55,9 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             try {
                 ApplicationContext applicationContext = BaseContextHolder.getApplicationContext();
                 applicationContext.setUserId(BATCH_CSV_CONNECTOR_NAME);
-                applicationContext.setRequestId(String.format("%s:%d", inboundTransaction.getFilename(), inboundTransaction.getLineNumber()));
+                applicationContext.setRequestId(String.format("%s:%d",
+                        inboundTransaction.getFilename().substring(inboundTransaction.getFilename().lastIndexOf('/') + 1),
+                        inboundTransaction.getLineNumber()));
                 BaseContextHolder.setApplicationContext(applicationContext);
                 Transaction transaction = mapper.map(inboundTransaction, applyHashing);
                 csvTransactionPublisherService.publishTransactionEvent(transaction);
@@ -65,7 +67,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             countDownLatch.countDown();
         }));
 
-        writerTrackerService.addCountDownLatch(countDownLatch,enableCheckpointFrequency,checkpointFrequency);
+        writerTrackerService.addCountDownLatch(countDownLatch, enableCheckpointFrequency, checkpointFrequency);
 
     }
 
