@@ -123,6 +123,8 @@ public class TransactionWriterTest extends BaseTest {
                 .acquirerId("0")
                 .terminalId("0")
                 .bin("0000")
+                .filename("filename")
+                .lineNumber(1)
                 .build();
     }
 

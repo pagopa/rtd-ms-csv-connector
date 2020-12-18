@@ -51,15 +51,20 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
         CountDownLatch countDownLatch = new CountDownLatch(inboundTransactions.size());
         Integer trackerSize = writerTrackerService.getCountDownLatches().size();
 
+        ApplicationContext applicationContext = BaseContextHolder.getApplicationContext();
+        applicationContext.setUserId(BATCH_CSV_CONNECTOR_NAME);
+        if (!inboundTransactions.isEmpty()) {
+            applicationContext.setRequestId(inboundTransactions.get(0).getFilename().substring(inboundTransactions.get(0).getFilename().lastIndexOf('/') + 1));
+        }
+
         inboundTransactions.forEach(inboundTransaction -> executor.execute(() -> {
             try {
-                ApplicationContext applicationContext = BaseContextHolder.getApplicationContext();
-                applicationContext.setUserId(BATCH_CSV_CONNECTOR_NAME);
                 applicationContext.setRequestId(String.format("%s:%d",
-                        inboundTransaction.getFilename().substring(inboundTransaction.getFilename().lastIndexOf('/') + 1),
+                        applicationContext.getRequestId(),
                         inboundTransaction.getLineNumber()));
-                BaseContextHolder.setApplicationContext(applicationContext);
+                BaseContextHolder.forceSetApplicationContext(applicationContext);
                 Transaction transaction = mapper.map(inboundTransaction, applyHashing);
+                log.info("test");
                 csvTransactionPublisherService.publishTransactionEvent(transaction);
             } catch (Exception e) {
                 transactionItemWriterListener.onWriteError(e, inboundTransaction);
