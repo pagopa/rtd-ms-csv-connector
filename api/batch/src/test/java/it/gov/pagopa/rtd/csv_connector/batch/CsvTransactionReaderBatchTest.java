@@ -9,12 +9,14 @@ import it.gov.pagopa.rtd.csv_connector.batch.config.CsvPaymentInstrumentRemovalT
 import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
+import it.gov.pagopa.rtd.csv_connector.service.WriterTrackerService;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;

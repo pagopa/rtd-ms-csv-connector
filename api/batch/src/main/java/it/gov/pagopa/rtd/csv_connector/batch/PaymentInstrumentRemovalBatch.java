@@ -130,6 +130,8 @@ public class PaymentInstrumentRemovalBatch {
     private Boolean applyEncrypt;
     @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.publicKeyPath}")
     private String publicKey;
+    @Value("${batchConfiguration.PaymentInstrumentRemovalBatch.enabled}")
+    private Boolean enabledPaymentInstrumentEnabled;
 
     private DataSource dataSource;
 
@@ -144,18 +146,20 @@ public class PaymentInstrumentRemovalBatch {
     @Scheduled(cron = "${batchConfiguration.PaymentInstrumentRemovalBatch.cron}")
     public void launchJob() throws Exception {
 
-        Date startDate = new Date();
-        log.info("PaymentInstrumentRemoval scheduled job started at {}", startDate);
+        if (enabledPaymentInstrumentEnabled) {
+            Date startDate = new Date();
+            log.info("PaymentInstrumentRemoval scheduled job started at {}", startDate);
 
-        paymentInstrumentJobLauncher().run(
-                paymentInstrumentJob(), new JobParametersBuilder()
-                        .addDate("startDateTime", startDate)
-                        .toJobParameters());
+            paymentInstrumentJobLauncher().run(
+                    paymentInstrumentJob(), new JobParametersBuilder()
+                            .addDate("startDateTime", startDate)
+                            .toJobParameters());
 
-        Date endDate = new Date();
+            Date endDate = new Date();
 
-        log.info("PaymentInstrumentRemoval scheduled job ended at {}" , endDate);
-        log.info("Completed in: {} (ms)", + (endDate.getTime() - startDate.getTime()));
+            log.info("PaymentInstrumentRemoval scheduled job ended at {}", endDate);
+            log.info("Completed in: {} (ms)", +(endDate.getTime() - startDate.getTime()));
+        }
 
     }
 
@@ -288,6 +292,7 @@ public class PaymentInstrumentRemovalBatch {
         archivalTasklet.setApplyEncrypt(applyEncrypt);
         archivalTasklet.setErrorDir(errorLogsPath);
         archivalTasklet.setPublicKeyDir(publicKey);
+        archivalTasklet.setApplyArchive(true);
         return stepBuilderFactory.get("csv-pm-success-archive-step").tasklet(archivalTasklet).build();
     }
 

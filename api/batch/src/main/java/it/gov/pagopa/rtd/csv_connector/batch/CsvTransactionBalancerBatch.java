@@ -79,18 +79,20 @@ public class CsvTransactionBalancerBatch {
     @Scheduled(cron = "${batchConfiguration.CsvTransactionBalancerBatch.cron}")
     public void launchJob() throws Exception {
 
-        Date startDate = new Date();
-        log.info("CsvTransactionReader scheduled job started at {}", startDate);
+        if (enableBalancer) {
+            Date startDate = new Date();
+            log.info("CsvTransactionReader scheduled job started at {}", startDate);
 
-        balancerJobLauncher().run(
-                balancerJob(), new JobParametersBuilder()
-                        .addDate("startDateTime", startDate)
-                        .toJobParameters());
+            balancerJobLauncher().run(
+                    balancerJob(), new JobParametersBuilder()
+                            .addDate("startDateTime", startDate)
+                            .toJobParameters());
 
-        Date endDate = new Date();
+            Date endDate = new Date();
 
-        log.info("CsvTransactionReader scheduled job ended at {}" , endDate);
-        log.info("Completed in: {} (ms)", + (endDate.getTime() - startDate.getTime()));
+            log.info("CsvTransactionReader scheduled job ended at {}", endDate);
+            log.info("Completed in: {} (ms)", +(endDate.getTime() - startDate.getTime()));
+        }
 
     }
 

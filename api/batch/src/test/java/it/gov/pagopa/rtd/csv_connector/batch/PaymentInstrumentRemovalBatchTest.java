@@ -87,6 +87,7 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
         },
         properties = {
                 "spring.main.allow-bean-definition-overriding=true",
+                "batchConfiguration.PaymentInstrumentRemovalBatch.enabled=true",
                 "batchConfiguration.PaymentInstrumentRemovalBatch.applyHashing=true",
                 "batchConfiguration.PaymentInstrumentRemovalBatch.applyDecrypt=true",
                 "batchConfiguration.PaymentInstrumentRemovalBatch.secretKeyPath=classpath:/test-encrypt-pm/secretKey.asc",

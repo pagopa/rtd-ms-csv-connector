@@ -49,13 +49,13 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
     public void write(List<? extends InboundTransaction> inboundTransactions) throws Exception {
 
         CountDownLatch countDownLatch = new CountDownLatch(inboundTransactions.size());
-        Integer trackerSize = writerTrackerService.getCountDownLatches().size();
 
         ApplicationContext applicationContext = BaseContextHolder.getApplicationContext();
         applicationContext.setUserId(BATCH_CSV_CONNECTOR_NAME);
 
         String fileName = !inboundTransactions.isEmpty() ?
-                inboundTransactions.get(0).getFilename().substring(inboundTransactions.get(0).getFilename().lastIndexOf('/') + 1) :
+                inboundTransactions.get(0).getFilename().substring(inboundTransactions.get(0)
+                        .getFilename().lastIndexOf('/') + 1) :
                 null;
 
         inboundTransactions.forEach(inboundTransaction -> executor.execute(() -> {
@@ -72,7 +72,11 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
             countDownLatch.countDown();
         }));
 
-        writerTrackerService.addCountDownLatch(countDownLatch, enableCheckpointFrequency, checkpointFrequency);
+        if (!inboundTransactions.isEmpty()) {
+            writerTrackerService.addCountDownLatch(
+                    countDownLatch, enableCheckpointFrequency,
+                    inboundTransactions.get(0).getFilename(), checkpointFrequency);
+        }
 
     }
 

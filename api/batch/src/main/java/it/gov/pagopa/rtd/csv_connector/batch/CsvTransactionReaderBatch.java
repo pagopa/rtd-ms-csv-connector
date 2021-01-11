@@ -334,9 +334,10 @@ public class CsvTransactionReaderBatch {
         ArchivalTasklet archivalTasklet = new ArchivalTasklet();
         archivalTasklet.setSuccessPath(successArchivePath);
         archivalTasklet.setErrorPath(errorArchivePath);
-        archivalTasklet.setApplyEncrypt(applyEncrypt);
+        archivalTasklet.setApplyEncrypt(false);
         archivalTasklet.setErrorDir(errorLogsPath);
         archivalTasklet.setPublicKeyDir(publicKey);
+        archivalTasklet.setApplyArchive(false);
         return stepBuilderFactory.get("csv-success-archive-step").tasklet(archivalTasklet).build();
     }
 
@@ -347,8 +348,7 @@ public class CsvTransactionReaderBatch {
     public FlowJobBuilder transactionJobBuilder() throws Exception {
         return jobBuilderFactory.get(jobName)
                 .repository(getJobRepository())
-                .start(masterStep()).on("FAILED").to(archivalTask())
-                .from(masterStep()).on("*").to(terminationTask()).on("*").to(archivalTask())
+                .start(masterStep()).on("*").to(terminationTask()).on("*").to(archivalTask())
                 .build();
     }
 
@@ -375,7 +375,8 @@ public class CsvTransactionReaderBatch {
      */
     @Bean
     public Step masterStep() throws IOException {
-        return stepBuilderFactory.get("csv-transaction-connector-master-step").partitioner(workerStep())
+        return stepBuilderFactory.get("csv-transaction-connector-master-step")
+                .partitioner(workerStep(writerTrackerService))
                 .partitioner("partition", partitioner())
                 .taskExecutor(partitionerTaskExecutor()).build();
     }
@@ -387,7 +388,7 @@ public class CsvTransactionReaderBatch {
      * @throws Exception
      */
     @Bean
-    public TaskletStep workerStep() {
+    public TaskletStep workerStep(WriterTrackerService writerTrackerService) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String executionDate = OffsetDateTime.now().format(fmt);
 
@@ -403,7 +404,7 @@ public class CsvTransactionReaderBatch {
                 .listener(transactionItemReaderListener(executionDate))
                 .listener(transactionsItemWriteListener(executionDate))
                 .listener(transactionsItemProcessListener(executionDate))
-                .listener(transactionStepListener())
+                .listener(transactionStepListener(writerTrackerService))
                 .taskExecutor(readerTaskExecutor())
                 .build();
     }
@@ -439,8 +440,15 @@ public class CsvTransactionReaderBatch {
     }
 
     @Bean
-    public TransactionReaderStepListener transactionStepListener() {
-        return new TransactionReaderStepListener();
+    public TransactionReaderStepListener transactionStepListener(WriterTrackerService writerTrackerService) {
+        TransactionReaderStepListener transactionReaderStepListener = new TransactionReaderStepListener();
+        transactionReaderStepListener.setErrorPath(errorArchivePath);
+        transactionReaderStepListener.setSuccessPath(successArchivePath);
+        transactionReaderStepListener.setWriterTrackerService(writerTrackerService);
+        transactionReaderStepListener.setApplyEncrypt(applyEncrypt);
+        transactionReaderStepListener.setErrorDir(errorLogsPath);
+        transactionReaderStepListener.setPublicKeyDir(publicKey);
+        return transactionReaderStepListener;
     }
 
     /**

@@ -40,7 +40,7 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
     private String errorDir;
     private String publicKeyDir;
     private Boolean applyEncrypt;
-
+    private Boolean applyArchive;
 
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
@@ -67,42 +67,45 @@ public class ArchivalTasklet implements Tasklet, InitializingBean {
     @SneakyThrows
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws IOException {
-        Collection<StepExecution> stepExecutions = chunkContext.getStepContext().getStepExecution().getJobExecution()
-                .getStepExecutions();
-        for (StepExecution stepExecution : stepExecutions) {
-            if (stepExecution.getExecutionContext().containsKey("fileName")) {
-                String file = stepExecution.getExecutionContext().getString("fileName");
-                String path = null;
 
-                try {
-                    path = resolver.getResource(file).getFile().getAbsolutePath();
-                } catch (Exception e) {
-                    log.error(e.getMessage(),e);
-                    path = file.replace("file:/", "");
-                }
+        if (applyArchive) {
+            Collection<StepExecution> stepExecutions = chunkContext.getStepContext().getStepExecution().getJobExecution()
+                    .getStepExecutions();
+            for (StepExecution stepExecution : stepExecutions) {
+                if (stepExecution.getExecutionContext().containsKey("fileName")) {
+                    String file = stepExecution.getExecutionContext().getString("fileName");
+                    String path = null;
 
-                try {
+                    try {
+                        path = resolver.getResource(file).getFile().getAbsolutePath();
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                        path = file.replace("file:/", "");
+                    }
 
-                    String archivalPath =
-                            BatchStatus.COMPLETED.equals(stepExecution.getStatus()) &&
-                                    stepExecution.getFailureExceptions().size() <= 0 ?
-                                    successPath : errorPath;
+                    try {
 
-                    file = file.replaceAll("\\\\", "/");
-                    String[] filename = file.split("/");
+                        String archivalPath =
+                                BatchStatus.COMPLETED.equals(stepExecution.getStatus()) &&
+                                        stepExecution.getFailureExceptions().size() <= 0 ?
+                                        successPath : errorPath;
 
-                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+                        file = file.replaceAll("\\\\", "/");
+                        String[] filename = file.split("/");
 
-                    archivalPath = resolver.getResources(archivalPath)[0].getFile().getAbsolutePath();
+                        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
-                    File destFile = FileUtils.getFile(archivalPath + "/" + RandomUtils.nextLong() +
-                            "_" + OffsetDateTime.now().format(fmt) + "_" + filename[filename.length - 1]);
+                        archivalPath = resolver.getResources(archivalPath)[0].getFile().getAbsolutePath();
 
-                    FileUtils.moveFile(FileUtils.getFile(path), destFile);
+                        File destFile = FileUtils.getFile(archivalPath + "/" + RandomUtils.nextLong() +
+                                "_" + OffsetDateTime.now().format(fmt) + "_" + filename[filename.length - 1]);
 
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                    throw e;
+                        FileUtils.moveFile(FileUtils.getFile(path), destFile);
+
+                    } catch (IOException e) {
+                        log.error(e.getMessage(), e);
+                        throw e;
+                    }
                 }
             }
         }
