@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <bpd-commons.version>1.0.8</bpd-commons.version>
+        <bpd-commons.version>1.1.0</bpd-commons.version>
     </properties>
 
     <dependencyManagement>
