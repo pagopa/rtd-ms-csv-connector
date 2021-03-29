@@ -2,7 +2,6 @@ package it.gov.pagopa.rtd.csv_connector.batch.config;
 
 import it.gov.pagopa.rtd.csv_connector.batch.CsvTransactionBalancerBatch;
 import it.gov.pagopa.rtd.csv_connector.batch.CsvTransactionReaderBatch;
-import it.gov.pagopa.rtd.csv_connector.batch.PaymentInstrumentRemovalBatch;
 import it.gov.pagopa.rtd.csv_connector.connector.config.CsvConnectorBatchJpaConfig;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
