@@ -30,7 +30,7 @@ public class TransactionWriter implements ItemWriter<InboundTransaction> {
 
     private static final String BATCH_CSV_CONNECTOR_NAME = "rtd-ms-csv-connector";
 
-    private final WriterTrackerService writerTrackerService;
+    private WriterTrackerService writerTrackerService;
     private final CsvTransactionPublisherService csvTransactionPublisherService;
     private TransactionItemWriterListener transactionItemWriterListener;
     private Executor executor;

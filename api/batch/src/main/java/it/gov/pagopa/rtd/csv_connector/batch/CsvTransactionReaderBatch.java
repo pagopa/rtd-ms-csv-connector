@@ -59,7 +59,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -245,7 +244,7 @@ public class CsvTransactionReaderBatch {
         delimitedLineTokenizer.setNames(
                 "codice_acquirer", "tipo_operazione", "tipo_circuito", "PAN", "timestamp", "id_trx_acquirer",
                 "id_trx_issuer", "correlation_id", "importo", "currency", "acquirerID", "merchantID", "terminal_id",
-                "bank_identification_number", "MCC");
+                "bank_identification_number", "MCC", "par");
         return delimitedLineTokenizer;
     }
 
@@ -305,8 +304,8 @@ public class CsvTransactionReaderBatch {
     @Bean
     @StepScope
     public ItemWriter<InboundTransaction> getItemWriter(TransactionItemWriterListener writerListener) {
-        TransactionWriter transactionWriter = beanFactory.getBean(TransactionWriter.class, writerTrackerService);
-        transactionWriter.setTransactionItemWriterListener(writerListener);
+        TransactionWriter transactionWriter = beanFactory.getBean(TransactionWriter.class);
+        transactionWriter.setWriterTrackerService(this.writerTrackerService);
         transactionWriter.setApplyHashing(applyHashing);
         transactionWriter.setExecutor(writerExecutor());
         transactionWriter.setCheckpointFrequency(checkpointFrequency);

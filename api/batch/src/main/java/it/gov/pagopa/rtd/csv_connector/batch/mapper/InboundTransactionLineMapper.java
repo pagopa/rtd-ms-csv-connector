@@ -20,6 +20,9 @@ public class InboundTransactionLineMapper<T> implements LineMapper<InboundTransa
 
     public InboundTransaction mapLine(String line, int lineNumber) throws Exception {
         try{
+            if (line.split(";").length <= 15) {
+                line = line.concat(";");
+            }
             InboundTransaction inboundTransaction = fieldSetMapper.mapFieldSet(tokenizer.tokenize(line));
             inboundTransaction.setLineNumber(lineNumber);
             inboundTransaction.setFilename(filename);

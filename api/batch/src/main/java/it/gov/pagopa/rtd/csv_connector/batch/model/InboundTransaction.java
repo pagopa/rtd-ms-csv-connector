@@ -75,6 +75,8 @@ public class InboundTransaction {
     @Pattern(regexp = "[0-9]{6}|[0-9]{8}")
     String bin;
 
+    String par;
+
     Integer lineNumber;
     String filename;
 

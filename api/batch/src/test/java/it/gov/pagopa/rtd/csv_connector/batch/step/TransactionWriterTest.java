@@ -46,17 +46,19 @@ public class TransactionWriterTest extends BaseTest {
     public void initTest() {
         Mockito.reset(csvTransactionPublisherServiceMock, mapperSpy);
         transactionWriter = new TransactionWriter(
-                writerTrackerServiceMock, csvTransactionPublisherServiceMock, mapperSpy);
+                csvTransactionPublisherServiceMock, mapperSpy);
         transactionWriter.setTransactionItemWriterListener(transactionItemWriterListenerMock);
         transactionWriter.setExecutor(Executors.newSingleThreadExecutor());
         transactionWriter.setApplyHashing(true);
         transactionWriter.setCheckpointFrequency(3);
         transactionWriter.setEnableCheckpointFrequency(true);
+        transactionWriter.setWriterTrackerService(writerTrackerServiceMock);
         BDDMockito.doNothing().when(csvTransactionPublisherServiceMock)
                 .publishTransactionEvent(Mockito.any(Transaction.class));
         BDDMockito.doNothing().when(writerTrackerServiceMock)
                 .addCountDownLatch(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
+
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
@@ -123,6 +125,7 @@ public class TransactionWriterTest extends BaseTest {
                 .acquirerId("0")
                 .terminalId("0")
                 .bin("0000")
+                .par("par")
                 .filename("filename")
                 .lineNumber(1)
                 .build();
@@ -145,6 +148,7 @@ public class TransactionWriterTest extends BaseTest {
                 .acquirerId("0")
                 .terminalId("0")
                 .bin("0000")
+                .par("par")
                 .build();
     }
 
