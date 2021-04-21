@@ -1,4 +1,4 @@
-package it.gov.pagopa.rtd.transaction_manager.connector.config;
+package it.gov.pagopa.rtd.csv_connector.connector.config;
 
 import it.gov.pagopa.bpd.common.connector.jpa.config.BaseJpaConfig;
 import org.springframework.context.annotation.Configuration;

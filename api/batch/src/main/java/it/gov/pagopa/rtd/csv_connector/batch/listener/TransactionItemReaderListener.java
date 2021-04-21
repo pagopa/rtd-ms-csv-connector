@@ -7,8 +7,8 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemReadListener;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -22,31 +22,40 @@ public class TransactionItemReaderListener implements ItemReadListener<InboundTr
 
     private String errorTransactionsLogsPath;
     private String executionDate;
+    private Boolean enableOnErrorLogging;
+    private Boolean enableOnErrorFileLogging;
+    private Long loggingFrequency;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
     public void beforeRead() {}
 
-    public void afterRead(InboundTransaction item) {
-        log.debug("Read transaction record on filename: {}, line: {}", item.getFilename(), item.getLineNumber());
-    }
+    public void afterRead(InboundTransaction item) {}
 
     public void onReadError(Exception throwable) {
 
-        log.info("#### Error while reading a transaction record - {}", throwable.getMessage());
+        if (enableOnErrorLogging) {
+            log.error("Error while reading a transaction record - {}", throwable.getMessage());
+        }
 
-        if (throwable instanceof FlatFileParseException) {
+        if (enableOnErrorFileLogging && throwable instanceof FlatFileParseException) {
             FlatFileParseException flatFileParseException = (FlatFileParseException) throwable;
+            String filename =  flatFileParseException.getMessage().split("\\[",3)[2]
+                    .replaceAll("]","").replaceAll("\\\\", "/");
+            String[] fileArr = filename.split("/");
 
             try {
                 File file = new File(
-                resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                 .concat("/".concat(executionDate))+ "_transactionsErrorRecords.csv");
+                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                .concat("/".concat(executionDate))
+                                + "_ValidationErrorRecords_"+fileArr[fileArr.length-1]
+                                .replaceAll(".csv","")
+                                .replaceAll(".pgp","")+".csv");
                 String[] lineArray = flatFileParseException.getInput().split("_",2);
-                FileUtils.writeStringToFile(file, (lineArray.length > 1 ?
-                                lineArray[1] : lineArray[0]).concat("\n"),
+                FileUtils.writeStringToFile(
+                        file, (lineArray.length > 1 ? lineArray[1] : lineArray[0]).concat("\n"),
                         Charset.defaultCharset(), true);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error(e.getMessage(),e);
             }
 

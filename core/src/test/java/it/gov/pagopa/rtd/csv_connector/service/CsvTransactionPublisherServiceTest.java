@@ -17,7 +17,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 
 /**
  * Class for unit testing of {@link CsvTransactionPublisherService}

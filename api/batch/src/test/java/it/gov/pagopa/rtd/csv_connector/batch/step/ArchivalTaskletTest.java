@@ -47,6 +47,8 @@ public class ArchivalTaskletTest extends BaseTest {
             ArchivalTasklet archivalTasklet = new ArchivalTasklet();
             archivalTasklet.setErrorPath("classpath:/test-encrypt/**/error");
             archivalTasklet.setSuccessPath("classpath:/test-encrypt/**/success");
+            archivalTasklet.setApplyEncrypt(false);
+            archivalTasklet.setApplyArchive(true);
 
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Assert.assertEquals(0,

@@ -2,7 +2,6 @@ package it.gov.pagopa.rtd.csv_connector.batch.step;
 
 import eu.sia.meda.BaseTest;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
-import it.gov.pagopa.rtd.csv_connector.batch.encryption.exception.PGPDecryptException;
 import it.gov.pagopa.rtd.csv_connector.batch.mapper.InboundTransactionFieldSetMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import lombok.SneakyThrows;
@@ -13,6 +12,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.LineMapper;
@@ -142,7 +142,7 @@ public class PGPFlatFileItemReaderTest extends BaseTest {
         flatFileItemReader.setLineMapper(transactionLineMapper("MM/dd/yyyy HH:mm:ss"));
         ExecutionContext executionContext = MetaDataInstanceFactory.createStepExecution().getExecutionContext();
         flatFileItemReader.update(executionContext);
-        exceptionRule.expect(PGPDecryptException.class);
+        exceptionRule.expect(ItemStreamException.class);
         flatFileItemReader.open(executionContext);
         Assert.assertEquals(0, executionContext
                 .getInt(ClassUtils.getShortName(FlatFileItemReader.class) + ".read.count"));

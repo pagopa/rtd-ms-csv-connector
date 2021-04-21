@@ -11,12 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+public class InboundTransactionLineMapperTest {
 
-public class LineAwareMapperTest {
-
-    public LineAwareMapperTest(){
+    public InboundTransactionLineMapperTest(){
         MockitoAnnotations.initMocks(this);
     }
 
@@ -27,14 +24,14 @@ public class LineAwareMapperTest {
         ((Logger) LoggerFactory.getLogger("eu.sia")).setLevel(Level.DEBUG);
     }
 
-    private LineAwareMapper<InboundTransaction> lineAwareMapper;
+    private InboundTransactionLineMapper<InboundTransaction> lineAwareMapper;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
-        lineAwareMapper = new LineAwareMapper<>();
+        lineAwareMapper = new InboundTransactionLineMapper<>();
         lineAwareMapper.setFilename("test.csv");
         DelimitedLineTokenizer delimitedLineTokenizer = new DelimitedLineTokenizer();
         delimitedLineTokenizer.setDelimiter(";");
@@ -75,7 +72,6 @@ public class LineAwareMapperTest {
     }
 
     public InboundTransaction getInboundTransaction() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss").withZone(ZoneId.systemDefault());
         return InboundTransaction.builder()
                 .acquirerCode("13131")
                 .operationType("00")

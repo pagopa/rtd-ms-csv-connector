@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
-import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.item.ReaderNotOpenException;
@@ -16,9 +15,8 @@ import org.springframework.util.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 
-public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTransaction> {
+public class CustomFlatFileItemReader<T> extends FlatFileItemReader<T> {
     private static final Log logger = LogFactory.getLog(FlatFileItemReader.class);
     public static final String DEFAULT_CHARSET = Charset.defaultCharset().name();
     public static final String[] DEFAULT_COMMENT_PREFIXES = new String[]{"#"};
@@ -29,14 +27,14 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
     private String[] comments;
     private boolean noInput;
     private String encoding;
-    private LineMapper<InboundTransaction> lineMapper;
+    private LineMapper<T> lineMapper;
     private int linesToSkip;
     private LineCallbackHandler skippedLinesCallback;
     private boolean strict;
     private BufferedReaderFactory bufferedReaderFactory;
-    private HashMap<String,Integer> lineToRecordCount;
+    private String filename;
 
-    public TransactionFlatFileItemReader() {
+    public CustomFlatFileItemReader() {
         this.comments = DEFAULT_COMMENT_PREFIXES;
         this.noInput = false;
         this.encoding = DEFAULT_CHARSET;
@@ -44,7 +42,6 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
         this.strict = true;
         this.bufferedReaderFactory = new DefaultBufferedReaderFactory();
         this.setName(ClassUtils.getShortName(FlatFileItemReader.class));
-        this.lineToRecordCount = new HashMap<>();
     }
 
     public void setStrict(boolean strict) {
@@ -59,7 +56,7 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
         this.linesToSkip = linesToSkip;
     }
 
-    public void setLineMapper(LineMapper<InboundTransaction> lineMapper) {
+    public void setLineMapper(LineMapper<T> lineMapper) {
         this.lineMapper = lineMapper;
     }
 
@@ -80,12 +77,16 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
         this.resource = resource;
     }
 
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     public void setRecordSeparatorPolicy(RecordSeparatorPolicy recordSeparatorPolicy) {
         this.recordSeparatorPolicy = recordSeparatorPolicy;
     }
 
     @Nullable
-    protected InboundTransaction doRead() throws Exception {
+    protected T doRead() throws Exception {
         if (this.noInput) {
             return null;
         } else {
@@ -101,7 +102,9 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
                             innerCount);
 
                 } catch (Exception var3) {
-                    throw new FlatFileParseException("Parsing error at line: " + innerCount + " in resource=[" + this.resource.getDescription() + "]" , var3, line, innerCount);
+                    throw new FlatFileParseException("Parsing error at line: " + innerCount + " in resource=[" +
+                            (this.filename != null ? this.filename : this.resource.getDescription())
+                            + "]" , var3, line, innerCount);
                 }
             }
         }
@@ -140,7 +143,9 @@ public class TransactionFlatFileItemReader extends FlatFileItemReader<InboundTra
                 }
             } catch (IOException var3) {
                 this.noInput = true;
-                throw new NonTransientFlatFileException("Unable to read from resource: [" + this.resource + "]", var3, line, this.lineCount);
+                throw new NonTransientFlatFileException("Unable to read from resource: [" +
+                        (this.filename != null ? this.filename : this.resource.getDescription())+ "]",
+                        var3, line, this.lineCount);
             }
         }
     }

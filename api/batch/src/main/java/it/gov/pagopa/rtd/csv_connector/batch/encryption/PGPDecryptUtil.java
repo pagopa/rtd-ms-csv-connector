@@ -82,6 +82,10 @@ public class PGPDecryptUtil {
                 sKey = findSecretKey(pgpSec, pbe.getKeyID(), passwd);
             }
 
+            if (pbe == null) {
+                throw new IllegalArgumentException("encrypted data not found.");
+            }
+
             if (sKey == null) {
                 throw new IllegalArgumentException("secret key for message not found.");
             }
