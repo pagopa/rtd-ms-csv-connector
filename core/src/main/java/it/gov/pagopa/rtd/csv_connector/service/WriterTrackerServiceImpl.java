@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.csv_connector.service;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 @Service
 @Data
 @RequiredArgsConstructor
+@EqualsAndHashCode(exclude = {"countDownLatches","fileLatchesMap"})
 @Slf4j
 public class WriterTrackerServiceImpl implements WriterTrackerService {
 
