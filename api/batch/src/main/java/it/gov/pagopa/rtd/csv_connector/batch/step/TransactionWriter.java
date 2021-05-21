@@ -9,6 +9,7 @@ import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
 import it.gov.pagopa.rtd.csv_connector.service.WriterTrackerService;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
@@ -24,6 +25,7 @@ import java.util.concurrent.Executor;
 
 @RequiredArgsConstructor
 @Slf4j
+@EqualsAndHashCode(exclude = {"writerTrackerService"})
 @Data
 @Component
 public class TransactionWriter implements ItemWriter<InboundTransaction> {

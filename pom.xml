@@ -10,7 +10,7 @@
 
     <groupId>it.gov.pagopa.rtd.ms</groupId>
     <artifactId>rtd-ms-csv-connector</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -22,22 +22,22 @@
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
                 <artifactId>rtd-ms-csv-connector-integration-event</artifactId>
-                <version>1.0.2-SNAPSHOT</version>
+                <version>1.0.3</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
                 <artifactId>rtd-ms-csv-connector-integration-jpa</artifactId>
-                <version>1.0.2-SNAPSHOT</version>
+                <version>1.0.3</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector</groupId>
                 <artifactId>rtd-ms-csv-connector-core</artifactId>
-                <version>1.0.2-SNAPSHOT</version>
+                <version>1.0.3</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector.api</groupId>
                 <artifactId>rtd-ms-csv-connector-api-batch</artifactId>
-                <version>1.0.2-SNAPSHOT</version>
+                <version>1.0.3</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.api</groupId>
