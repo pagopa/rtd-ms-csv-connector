@@ -4,12 +4,12 @@
     <parent>
         <artifactId>rtd-ms-csv-connector-integration</artifactId>
         <groupId>it.gov.pagopa.rtd.ms.csv_connector</groupId>
-        <version>1.0.3</version>
+        <version>cen-383-rc1</version>
     </parent>
 
     <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
     <artifactId>rtd-ms-csv-connector-integration-jpa</artifactId>
-    <version>1.0.3</version>
+    <version>cen-383-rc1</version>
 
     <dependencies>
         <dependency>
