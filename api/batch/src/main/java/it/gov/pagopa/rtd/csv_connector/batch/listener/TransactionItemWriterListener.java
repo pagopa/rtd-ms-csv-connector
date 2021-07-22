@@ -1,12 +1,12 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
-import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -115,7 +115,8 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
                 .concat(inboundTransaction.getMerchantId() != null ? inboundTransaction.getMerchantId() : "").concat(";")
                 .concat(inboundTransaction.getTerminalId() != null ? inboundTransaction.getTerminalId() : "").concat(";")
                 .concat(inboundTransaction.getBin() != null ? inboundTransaction.getBin() : "").concat(";")
-                .concat(inboundTransaction.getMcc() != null ? inboundTransaction.getMcc() : "").concat("\n");
+                .concat(inboundTransaction.getMcc() != null ? inboundTransaction.getMcc() : "").concat(";")
+                .concat(inboundTransaction.getPar() != null ? inboundTransaction.getPar() : "").concat("\n");
     }
 
 }

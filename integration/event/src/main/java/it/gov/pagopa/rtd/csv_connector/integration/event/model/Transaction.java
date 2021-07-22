@@ -45,4 +45,6 @@ public class Transaction {
 
     String bin;
 
+    String par;
+
 }
