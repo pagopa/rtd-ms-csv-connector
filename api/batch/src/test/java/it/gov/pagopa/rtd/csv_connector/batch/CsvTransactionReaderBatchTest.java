@@ -5,18 +5,18 @@ import eu.sia.meda.core.properties.PropertiesManager;
 import eu.sia.meda.event.configuration.ArchEventConfigurationService;
 import eu.sia.meda.event.transformer.SimpleEventRequestTransformer;
 import eu.sia.meda.event.transformer.SimpleEventResponseTransformer;
+import it.gov.pagopa.rtd.csv_connector.batch.config.CsvPaymentInstrumentRemovalTestConfig;
 import it.gov.pagopa.rtd.csv_connector.integration.event.CsvTransactionPublisherConnector;
-import it.gov.pagopa.rtd.csv_connector.batch.config.TestConfig;
 import it.gov.pagopa.rtd.csv_connector.batch.encryption.PGPDecryptUtil;
-import it.gov.pagopa.rtd.csv_connector.batch.step.InboundTransactionItemProcessor;
-import it.gov.pagopa.rtd.csv_connector.batch.step.TransactionWriter;
 import it.gov.pagopa.rtd.csv_connector.service.CsvTransactionPublisherService;
+import it.gov.pagopa.rtd.csv_connector.service.WriterTrackerService;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -27,10 +27,12 @@ import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
@@ -68,7 +70,7 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
         "classpath:org/springframework/batch/core/schema-hsqldb.sql"})
 @EnableAutoConfiguration
 @ContextConfiguration(classes = {
-        TestConfig.class,
+        CsvPaymentInstrumentRemovalTestConfig.class,
         JacksonAutoConfiguration.class,
         AuthenticationConfiguration.class,
         KafkaAutoConfiguration.class,
@@ -77,6 +79,8 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
         KafkaAutoConfiguration.class,
         SimpleEventRequestTransformer.class,
         SimpleEventResponseTransformer.class,
+        FeignAutoConfiguration.class,
+        HttpMessageConvertersAutoConfiguration.class,
         CsvTransactionReaderBatch.class
 })
 @TestPropertySource(
@@ -182,41 +186,6 @@ public class CsvTransactionReaderBatchTest {
 
             Mockito.verifyZeroInteractions(csvTransactionPublisherServiceSpy);
             Mockito.verifyZeroInteractions(csvTransactionPublisherConnectorSpy);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
-    }
-
-    @Test
-    public void testJob_Ok_NoSkips() {
-        try {
-
-            File testTrxPgp = tempFolder.newFile("test-trx.pgp");
-
-            FileOutputStream textTrxPgpFOS = new FileOutputStream(testTrxPgp);
-
-            PGPDecryptUtil.encryptFile(textTrxPgpFOS,
-                    this.getClass().getResource("/test-encrypt").getFile() + "/test-trx-ns.csv",
-                    PGPDecryptUtil.readPublicKey(
-                            this.getClass().getResourceAsStream("/test-encrypt/publicKey.asc")),
-                    false,false);
-
-            textTrxPgpFOS.close();
-
-            JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters());
-            Assert.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
-
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Assert.assertEquals(1,
-                    FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/success")[0].getFile(),
-                            new String[]{"pgp"},false).size());
-            Assert.assertEquals(0,
-                    FileUtils.listFiles(
-                            resolver.getResources("classpath:/test-encrypt/**/error")[0].getFile(),
-                            new String[]{"pgp"},false).size());
 
         } catch (Exception e) {
             e.printStackTrace();

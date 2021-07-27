@@ -10,28 +10,22 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 
 import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 
 /**
  * Class for unit testing of the InboundTransactionItemProcessor class
  */
 public class InboundTransactionItemProcessorTest extends BaseTest {
 
-    @Spy
-    private TransactionMapper mapperSpy;
-
     private InboundTransactionItemProcessor inboundTransactionItemProcessor;
 
     @Before
     public void initTest() {
-        Mockito.reset(mapperSpy);
-        this.inboundTransactionItemProcessor = new InboundTransactionItemProcessor(mapperSpy);
+        this.inboundTransactionItemProcessor = new InboundTransactionItemProcessor();
     }
 
     @Rule
@@ -42,65 +36,15 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
 
         try {
             InboundTransaction inboundTransaction = getInboundTransaction();
-            this.inboundTransactionItemProcessor.setApplyHashing(true);
-            Transaction transaction = inboundTransactionItemProcessor.
+            InboundTransaction transaction = inboundTransactionItemProcessor.
                     process(inboundTransaction);
             Assert.assertNotNull(transaction);
-            Assert.assertEquals(transaction.getHpan(), DigestUtils.sha256Hex(inboundTransaction.getPan()));
-            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
-            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(true));
+            Assert.assertEquals(transaction.getPan(), inboundTransaction.getPan());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
         }
 
-    }
-
-    @Test
-    public void processValidInboundTransaction_NoHashing() {
-
-        try {
-            InboundTransaction inboundTransaction = getInboundTransaction();
-            this.inboundTransactionItemProcessor.setApplyHashing(false);
-            Transaction transaction = inboundTransactionItemProcessor.
-                    process(inboundTransaction);
-            Assert.assertNotNull(transaction);
-            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
-            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
-            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
-
-    }
-
-    @Test
-    public void process_OK_validForReturn() {
-        try {
-
-            InboundTransaction inboundTransaction = getInboundTransaction();
-            inboundTransaction.setOperationType("01");
-            inboundTransaction.setIdTrxIssuer("");
-            this.inboundTransactionItemProcessor.setApplyHashing(false);
-
-            Transaction transaction = inboundTransactionItemProcessor.process(inboundTransaction);
-            Assert.assertNotNull(transaction);
-            Assert.assertEquals(transaction.getHpan(), inboundTransaction.getPan());
-            Mockito.verify(mapperSpy).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
-            inboundTransaction = getInboundTransaction();
-            inboundTransaction.setOperationType("01");
-            inboundTransaction.setIdTrxIssuer(null);
-            transaction = inboundTransactionItemProcessor.process(inboundTransaction);
-            Assert.assertNotNull(transaction);
-            Assert.assertEquals(inboundTransaction.getPan(),transaction.getHpan());
-            Assert.assertEquals(BigDecimal.valueOf(10.50).setScale(2),transaction.getAmount());
-            Mockito.verify(mapperSpy, Mockito.times(2)).map(Mockito.eq(inboundTransaction), Mockito.eq(false));
-
-        } catch (Exception e) {
-            Assert.fail();
-            e.printStackTrace();
-        }
     }
 
     @Rule
@@ -115,8 +59,6 @@ public class InboundTransactionItemProcessorTest extends BaseTest {
 
         exceptionRule.expect(ConstraintViolationException.class);
         inboundTransactionItemProcessor.process(inboundTransaction);
-
-        Mockito.verifyZeroInteractions(mapperSpy);
 
     }
 

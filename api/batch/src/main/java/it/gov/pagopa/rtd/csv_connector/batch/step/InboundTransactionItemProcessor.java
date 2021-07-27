@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.csv_connector.batch.step;
 
-import it.gov.pagopa.rtd.csv_connector.batch.mapper.TransactionMapper;
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
 import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
@@ -21,10 +20,7 @@ import java.util.Set;
 @Slf4j
 @Data
 @Component
-public class InboundTransactionItemProcessor implements ItemProcessor<InboundTransaction, Transaction> {
-
-    private final TransactionMapper mapper;
-    private Boolean applyHashing;
+public class InboundTransactionItemProcessor implements ItemProcessor<InboundTransaction, InboundTransaction> {
 
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
@@ -37,16 +33,14 @@ public class InboundTransactionItemProcessor implements ItemProcessor<InboundTra
      * @throws ConstraintViolationException
      */
     @Override
-    public Transaction process(InboundTransaction inboundTransaction) {
+    public InboundTransaction process(InboundTransaction inboundTransaction) {
 
         Set<ConstraintViolation<InboundTransaction>> constraintViolations = validator.validate(inboundTransaction);
         if (constraintViolations.size() > 0) {
             throw new ConstraintViolationException(constraintViolations);
         }
 
-        Transaction transaction = mapper.map(inboundTransaction, applyHashing);
-
-        return transaction;
+        return inboundTransaction;
 
     }
 

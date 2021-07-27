@@ -10,7 +10,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 @Data
-public class LineAwareMapper<T> implements LineMapper<InboundTransaction>, InitializingBean {
+public class InboundTransactionLineMapper<T> implements LineMapper<InboundTransaction>, InitializingBean {
 
     private LineTokenizer tokenizer;
 

@@ -1,14 +1,14 @@
 package it.gov.pagopa.rtd.csv_connector.batch.listener;
 
 import it.gov.pagopa.rtd.csv_connector.batch.model.InboundTransaction;
+import it.gov.pagopa.rtd.csv_connector.integration.event.model.Transaction;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.lang.Nullable;
-
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -17,54 +17,46 @@ import java.nio.charset.Charset;
  */
 @Slf4j
 @Data
-public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction,InboundTransaction> {
+public class TransactionItemProcessListener implements ItemProcessListener<InboundTransaction, InboundTransaction> {
 
     private String errorTransactionsLogsPath;
     private String executionDate;
+    private Boolean enableOnErrorLogging;
+    private Boolean enableOnErrorFileLogging;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeProcess(InboundTransaction inboundTransaction) {
+    public void beforeProcess(InboundTransaction item) {}
 
-    }
-
-    public void afterProcess(InboundTransaction item, @Nullable InboundTransaction result) {
-
-        if (result == null) {
-
-            log.info("Filtered transaction record on filename: {}, line: {}",
-                    item.getFilename(), item.getLineNumber());
-
-            try {
-                File file = new File(
-                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                .concat("/".concat(executionDate)) + "_transactionsFilteredRecords.csv");
-                FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-
-        } else {
-            log.debug("Processed transaction record on filename: {}, line: {}",
-                    item.getFilename(),item.getLineNumber());
-        }
-
-    }
+    @Override
+    public void afterProcess(InboundTransaction item, InboundTransaction result) {}
 
     public void onProcessError(InboundTransaction item, Exception throwable) {
 
-        log.info("Error during during transaction processing, filename: {},line: {}",
-                item.getFilename(), item.getLineNumber());
+        if (enableOnErrorLogging) {
+            log.error("Error during during transaction record processing - {}, transaction: " +
+                            "[{}, {}, {}], filename: {}}",
+                    throwable.getMessage(),
+                    item.getAcquirerCode(),
+                    item.getTrxDate(),
+                    item.getIdTrxAcquirer(),
+                    item.getFilename());
+        }
 
-        try {
-
-            File file = new File(
-                    resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                            .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
-            FileUtils.writeStringToFile(file,buildCsv(item) , Charset.defaultCharset(), true);
-
-        } catch (Exception e) {
-            log.error(e.getMessage(),e);
+        if (enableOnErrorFileLogging) {
+            try {
+                String filename = item.getFilename().replaceAll("\\\\", "/");
+                String[] fileArr = filename.split("/");
+                File file = new File(
+                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                .concat("/".concat(executionDate))
+                                + "_ValidationErrorRecords_"+fileArr[fileArr.length-1]
+                                .replaceAll(".csv","")
+                                .replaceAll(".pgp","")+".csv");
+                FileUtils.writeStringToFile(file, buildCsv(item), Charset.defaultCharset(), true);
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
         }
 
     }

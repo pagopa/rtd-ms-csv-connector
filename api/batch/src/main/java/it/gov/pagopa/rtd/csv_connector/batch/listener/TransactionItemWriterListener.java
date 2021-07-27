@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -22,42 +22,80 @@ public class TransactionItemWriterListener implements ItemWriteListener<InboundT
 
     private String errorTransactionsLogsPath;
     private String executionDate;
+    private Boolean enableOnErrorLogging;
+    private Boolean enableOnErrorFileLogging;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
     @Override
-    public void beforeWrite(List<? extends InboundTransaction> list) {}
+    public void beforeWrite(List<? extends InboundTransaction> transactions) {}
 
-    public void afterWrite(List<? extends InboundTransaction> inboundTransactions) {
-        if (log.isDebugEnabled()) {
-            inboundTransactions.forEach(inboundTransaction -> {
-                log.debug("Transaction record from filename: {}, line: {} written",
-                        inboundTransaction.getFilename(),
-                        inboundTransaction.getLineNumber());
-            });
-        }
-    }
+    public void afterWrite(List<? extends InboundTransaction> transactions) {}
 
     public void onWriteError(Exception throwable, List<? extends InboundTransaction> inboundTransactions) {
 
         inboundTransactions.forEach(inboundTransaction -> {
 
-            log.info("Error during during transaction record writing - {},filename: {},line: {}" ,
-                    throwable.getMessage() , inboundTransaction.getFilename() ,inboundTransaction.getLineNumber());
+            if (enableOnErrorLogging) {
+                log.error("Error during transaction record writing - {}, transaction: " +
+                                "[{}, {}, {}], filename: {}",
+                        throwable.getMessage(),
+                        inboundTransaction.getAcquirerCode(),
+                        inboundTransaction.getTrxDate(),
+                        inboundTransaction.getIdTrxAcquirer(),
+                        inboundTransaction.getFilename());
+            }
 
-            try {
+            if (enableOnErrorFileLogging) {
+                try {
+                    String filename = inboundTransaction.getFilename().replaceAll("\\\\", "/");
+                    String[] fileArr = filename.split("/");
+                    File file = new File(
+                            resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                    .concat("/".concat(executionDate))
+                                    + "_WriteErrorRecords_"+fileArr[fileArr.length-1]
+                                    .replaceAll(".csv","")
+                                    .replaceAll(".pgp","")+".csv");
+                    FileUtils.writeStringToFile(
+                            file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
 
-                File file = new File(
-                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
-                                .concat("/".concat(executionDate)) + "_transactionsErrorRecords.csv");
-                FileUtils.writeStringToFile(
-                        file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
-
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
             }
 
         });
 
+    }
+
+    public void onWriteError(Exception throwable, InboundTransaction inboundTransaction) {
+
+        if (enableOnErrorLogging) {
+            log.error("Error during transaction record writing - {}, transaction: " +
+                            "[{}, {}, {}], filename: {}",
+                    throwable.getMessage(),
+                    inboundTransaction.getAcquirerCode(),
+                    inboundTransaction.getTrxDate(),
+                    inboundTransaction.getIdTrxAcquirer(),
+                    inboundTransaction.getFilename());
+        }
+
+        if (enableOnErrorFileLogging) {
+            try {
+                String filename = inboundTransaction.getFilename().replaceAll("\\\\", "/");
+                String[] fileArr = filename.split("/");
+                File file = new File(
+                        resolver.getResource(errorTransactionsLogsPath).getFile().getAbsolutePath()
+                                .concat("/".concat(executionDate))
+                                + "_WriteErrorRecords_"+fileArr[fileArr.length-1]
+                                .replaceAll(".csv","")
+                                .replaceAll(".pgp","")+".csv");
+                FileUtils.writeStringToFile(
+                        file, buildCsv(inboundTransaction), Charset.defaultCharset(), true);
+
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
 
     }
 
