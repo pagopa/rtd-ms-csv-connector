@@ -4,17 +4,17 @@
 
     <parent>
         <groupId>it.gov.pagopa.bpd.ms</groupId>
-        <version>cen-383-rc2</version>
+        <version>2.0.0</version>
         <artifactId>bpd-ms-starter-parent</artifactId>
     </parent>
 
     <groupId>it.gov.pagopa.rtd.ms</groupId>
     <artifactId>rtd-ms-csv-connector</artifactId>
-    <version>cen-383-rc1</version>
+    <version>2.0.0</version>
     <packaging>pom</packaging>
 
     <properties>
-        <bpd-commons.version>cen-383-rc2</bpd-commons.version>
+        <bpd-commons.version>2.0.0</bpd-commons.version>
     </properties>
 
     <dependencyManagement>
@@ -22,22 +22,22 @@
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
                 <artifactId>rtd-ms-csv-connector-integration-event</artifactId>
-                <version>cen-383-rc1</version>
+                <version>2.0.0</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector.integration</groupId>
                 <artifactId>rtd-ms-csv-connector-integration-jpa</artifactId>
-                <version>cen-383-rc1</version>
+                <version>2.0.0</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector</groupId>
                 <artifactId>rtd-ms-csv-connector-core</artifactId>
-                <version>cen-383-rc1</version>
+                <version>2.0.0</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.rtd.ms.csv_connector.api</groupId>
                 <artifactId>rtd-ms-csv-connector-api-batch</artifactId>
-                <version>cen-383-rc1</version>
+                <version>2.0.0</version>
             </dependency>
             <dependency>
                 <groupId>it.gov.pagopa.bpd.commons.api</groupId>
